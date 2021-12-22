@@ -12,13 +12,13 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='sample',
+    name='LTL',
     version='0.1.0',
-    description='Sample package for Python-Guide.org',
+    description='Learn Model with LTL Repository',
     long_description=readme,
-    author='Kenneth Reitz',
-    author_email='me@kennethreitz.com',
-    url='https://github.com/kennethreitz/samplemod',
+    author='Mrudula Balachander',
+    author_email='mrudula.balachander@ulb.be',
+    url='https://github.com/mrudu/acacia-bonsai-python',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )
