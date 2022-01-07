@@ -26,13 +26,19 @@ class LearnMealyMachine(object):
 		self.register_ap(self.mealy_machine, input_atomic_propositions)
 		self.register_ap(self.mealy_machine, output_atomic_propositions)
 		self.state_counting_function_map = {}
+		self.state_minimal_word_map = {}
+		self.bdd_input_output_label_map = {}
 		self.visited_states = []
+
+		self.queries = 0
+		self.userQueries = 0
 
 	def compute_winning(self, psi, inputs, outputs):
 		directory = "/Users/mrudula/Personal/code/acacia-bonsai/build/"
 		file_name = "src/acacia-bonsai"
 		antichain_lines = []
 		automata_lines = []
+		num_bool_states = 0
 		try:
 			command = directory + file_name + " -f '" + psi + "' -i '" + ",".join(inputs)
 			command = command + "' -o '" + ",".join(outputs) + "' --K=" + str(self.k)
@@ -41,17 +47,22 @@ class LearnMealyMachine(object):
 
 			op = subprocess.run(command, shell=True, capture_output=True)
 			captureAut = False
-
+			captureAntichain = False
+			
 			for line in op.stdout.splitlines():
 				l = line.decode()
 				if l == "AUTOMATA":
 					captureAut = True
-				elif l == 'ANTICHAINHEADS':
+				elif l =="BOOLEANSTATES":
 					captureAut = False
+				elif l == 'ANTICHAINHEADS':
+					captureAntichain = True
 				elif captureAut:
 					automata_lines.append(l)
-				else:
+				elif captureAntichain:
 					antichain_lines.append(l)
+				else:
+					num_bool_states = int(l)
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
@@ -64,17 +75,13 @@ class LearnMealyMachine(object):
 			pass
 
 		self.antichain_heads = []
-		print("Maximal Elements of Antichain: " + ', '.join(antichain_lines));
-		isCorrect = input("Modify? (y/n): ")
-		
-		if isCorrect in "yY":
-			antichain_lines = []
-			num_elements = int(input("Enter number of elements of antichain: "))
-			for x in range(num_elements):
-				antichain_lines.append(input("Enter maximal element as {x x x .. x}: ")[::-1])
 		
 		for line in antichain_lines:
-			self.antichain_heads.append(list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))[::-1])
+			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))
+			list_item = list_item[len(list_item) - num_bool_states:] + list_item[:len(list_item) - num_bool_states]
+			self.antichain_heads.append(list_item)
+
+		print("Maximal Elements of Antichain: " + str(self.antichain_heads))
 
 	def build_UCB(self, psi):
 		# Negating Formula
@@ -114,24 +121,33 @@ class LearnMealyMachine(object):
 		return bdd_list
 
 	def get_state_label(self, val):
-	    for key, value in self.state_counting_function_map.items():
-	         if val == value:
-	             return key
+		for key, value in self.state_counting_function_map.items():
+			 if val == value:
+				 return key
 	 
-	    return val
+		return val
 
 	def custom_print(self):
-	    print("Number of states: ", self.mealy_machine.num_states())
-	    print("Initial state: ", self.mealy_machine.get_init_state_number())
-	    print("Atomic propositions:", end='')
-	    for ap in self.mealy_machine.ap():
-	        print(' ', ap, sep='', end='\n')
+		print("Number of states: ", self.mealy_machine.num_states())
+		print("Initial state: ", self.mealy_machine.get_init_state_number())
+		print("Atomic propositions:", end='')
+		for ap in self.mealy_machine.ap():
+			print(' ', ap, sep='', end='')
+		print('')
 
-	    for s in range(0, self.mealy_machine.num_states()):
-	        print("State {}:".format(self.get_state_label(s)))
-	        for t in self.mealy_machine.out(s):
-	            print("  edge({} -> {})".format(self.get_state_label(t.src), self.get_state_label(t.dst)))
-	            print("    label =", spot.bdd_to_formula(t.cond))
+		for s in range(0, self.mealy_machine.num_states()):
+			print("State {}:".format(self.state_minimal_word_map[s]))
+			for t in self.mealy_machine.out(s):
+				print("  edge({} -> {})".format(self.state_minimal_word_map[t.src], self.state_minimal_word_map[t.dst]))
+				print("    input label =", spot.bdd_to_formula(self.bdd_input_output_label_map[t.cond]["input"]))
+				print("    output label =", spot.bdd_to_formula(self.bdd_input_output_label_map[t.cond]["output"]))
+		print("----------------------------------")
+		print("# of queries made: " + str(self.queries))
+		print("# of user modifications: " + str(self.userQueries))
+
+		file_name = input("Enter name of svg file: ")
+		with open('./' + file_name + '.svg','wb+') as outfile:
+			outfile.write(self.mealy_machine.show().data.encode('utf-8'))
 
 	def build_mealy(self):
 		k = 1
@@ -141,6 +157,7 @@ class LearnMealyMachine(object):
 		s = self.mealy_machine.new_state()
 		self.mealy_machine.set_init_state(s)
 		self.state_counting_function_map[str(waiting[0])] = s
+		self.state_minimal_word_map[s] = "<>"
 		self.visited_states.append(waiting[0])
 		while len(waiting) > 0:
 			state = random.choice(waiting)
@@ -154,25 +171,19 @@ class LearnMealyMachine(object):
 					self.visited_states.append(transition_state_dict["dst_state"])
 					waiting.append(transition_state_dict["dst_state"])
 					to_state = self.mealy_machine.new_state()
+					self.state_minimal_word_map[to_state] = self.state_minimal_word_map[from_state] + ".<" + str(spot.bdd_to_formula(i)) + ">.<" + str(spot.bdd_to_formula(transition_state_dict["output"])) + ">"
 					self.state_counting_function_map[str(transition_state_dict["dst_state"])] = to_state
 				self.mealy_machine.new_edge(from_state, to_state, i & transition_state_dict["output"])
+				self.bdd_input_output_label_map[i & transition_state_dict["output"]] = {"input" : i, "output": transition_state_dict["output"]}
 	
 	def get_transition_state(self, state_vector, edge_formula):
 		dst_state_vector = []
-		# print("state vector: " + str(state_vector))
-		# print("Checking with formula " +  str(spot.bdd_to_formula(edge_formula)))
 		for state in range(self.ucb_num_states):
 			dst_state_possibilities = []
-			# dst_state_possibilities.append(state_vector[state])
-			# print("For position: " + str(state))
 			for from_state in range(self.ucb_num_states):
-				# print("From state: " + str(from_state))
 				if state_vector[from_state] == -1:
-					# print("From state not active. Continuing...")
 					continue
 				for edge in self.ucb.out(from_state):
-					# print("Edge from state " + str(from_state) + " to " 
-					# 	+ str(edge.dst) + "with condition " + str(spot.bdd_to_formula(edge.cond)))
 					if edge.dst != state:
 						continue
 					if edge.cond & edge_formula != buddy.bddfalse:
@@ -181,13 +192,6 @@ class LearnMealyMachine(object):
 							1 if self.ucb.state_is_accepting(edge.dst)
 							else 0)
 						))
-						# print("Adding to DST vector: " + str(min(self.k+1, 
-						# (state_vector[from_state] + 
-						# 	1 if self.ucb.state_is_accepting(edge.dst)
-						# 	else 0)
-						# )))
-				# print("DST possibilities " + str(dst_state_possibilities))
-			# print("Choosing max " + str(max(dst_state_possibilities)))
 			if len(dst_state_possibilities) == 0:
 				dst_state_vector.append(-1)
 				continue
@@ -201,43 +205,79 @@ class LearnMealyMachine(object):
 		return safe
 
 	def contains(self, vector_1, vector_2):
+		if vector_1 == None or vector_2 == None:
+			return False
 		for i in range(self.ucb_num_states):
 			if vector_1[i] < vector_2[i]:
 				return False
 		return True
 
+	@staticmethod
+	def print_choice_list(choice_list, choice_name):
+		if len(choice_list) > 0:
+			print(choice_name + 
+				', '.join(list(map(lambda x: str(spot.bdd_to_formula(x[1])), choice_list))))
+
 	def query(self, state_vector, i):
+		self.queries += 1
+		
 		dst_state_vector = None
-		print(spot.bdd_to_formula(i))
 		output_choice = None
+		
+		unsafe_choice_list = []
+		safe_choice_list = []
+		best_choice_list = []
+		visited_choice_list = []
+		
 		for o in self.bdd_outputs:
-		# 	print("Current value of dst: " + str(dst_state_vector))
-		# 	print("Output formula: " + str(spot.bdd_to_formula(o)))
 			current_state_vector = self.get_transition_state(state_vector, i & o)
-			# print("Transition state: " + str(current_state_vector))
 			if not self.is_safe(current_state_vector):
 				# print("Unsafe choice. Continuing...")
+				unsafe_choice_list.append([current_state_vector, o])
 				continue
-			if dst_state_vector == None:
-				dst_state_vector = current_state_vector
-				output_choice = o
+			safe_choice_list.append([current_state_vector, o])
+			
+			if current_state_vector in self.visited_states:
+				visited_choice_list.append([current_state_vector, o])
+			
+			if current_state_vector == dst_state_vector:
+				best_choice_list.append([current_state_vector, o])
 				continue
+			
 			if self.contains(current_state_vector, dst_state_vector):
 				# print("Already the best")
 				continue
-			if self.contains(dst_state_vector, current_state_vector):
-				# print("Strictly better")
+			if dst_state_vector == None or self.contains(dst_state_vector, current_state_vector) or current_state_vector in self.visited_states:
 				dst_state_vector = current_state_vector
 				output_choice = o
+				best_choice_list = [[current_state_vector, o]]
 				continue
-			if current_state_vector in self.visited_states:
-				# print("Visited once")
-				dst_state_vector = current_state_vector
-				output_choice = o
-				continue
+			best_choice_list.append([current_state_vector, o])
 			
 		# print(spot.bdd_to_formula(output_choice))
-		print(output_choice)
+
+		print("Action after sequence " 
+			+ self.state_minimal_word_map[self.state_counting_function_map[str(state_vector)]]
+			+ '.' + str(spot.bdd_to_formula(i))
+			+ " is chosen as: " + str(spot.bdd_to_formula(output_choice)))
+		
+		self.print_choice_list(best_choice_list, "Best actions: ")
+		self.print_choice_list(safe_choice_list, "Safe actions: ")
+		self.print_choice_list(visited_choice_list, "Actions that lead to a visited state: ")
+		self.print_choice_list(unsafe_choice_list, "Unsafe actions: ")
+		
+		chooseToModify = input("Modify? (y/n): ")
+		
+		if chooseToModify in "yY":
+			self.userQueries += 1
+			while True:
+				for o in self.bdd_outputs:
+					output_choice = input("Enter preferred action: ")
+					if output_choice == str(spot.bdd_to_formula(o)):
+						output_choice = o
+						dst_state_vector = self.get_transition_state(state_vector, i & o)
+						return {"dst_state": dst_state_vector, "output": output_choice}
+				print("Invalid action. Choose amongst: " + ", ".join(list(map(lambda x: str(spot.bdd_to_formula(x)), self.bdd_outputs))))
 		return {"dst_state": dst_state_vector, "output": output_choice}
 
 def execute_main():
@@ -249,7 +289,7 @@ def execute_main():
 	output_atomic_propositions = input("Enter Output Atomic Prositions (space-separated): ")
 	output_atomic_propositions = output_atomic_propositions.split(" ")
 
-	m = LearnMealyMachine(1, formula, input_atomic_propositions, output_atomic_propositions)
+	m = LearnMealyMachine(2, str(formula), input_atomic_propositions, output_atomic_propositions)
 	m.build_mealy()
 	m.custom_print()
 
@@ -257,4 +297,4 @@ def test():
 	m = LearnMealyMachine(1, 'G(p->Fgp) & G(q->Fgq) & G(!(gp & gq))', ['p', 'q'], ['gp', 'gq'])
 	m.build_mealy()
 	m.custom_print()
-test()
+execute_main()
