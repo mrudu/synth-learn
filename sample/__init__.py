@@ -6,6 +6,8 @@ import random
 from aalpy.automata import MealyState, MealyMachine
 from aalpy.utils import visualize_automaton
 from aalpy.SULs import MealySUL
+from aalpy.oracles import StatePrefixEqOracle
+from aalpy.learning_algs import run_Lstar
 
 class LearnMealyMachine(object):
 	"""docstring for LearnMealyMachine"""
@@ -27,11 +29,8 @@ class LearnMealyMachine(object):
 		self.bdd_outputs = self.get_proposition_list(
 			self.get_bdd_propositions(output_atomic_propositions))
 
-		self.mealy_machine = spot.make_twa_graph(self.ucb.get_dict())
-		self.mealy_machine_aalpy = None
-		self.register_ap(self.mealy_machine, input_atomic_propositions)
-		self.register_ap(self.mealy_machine, output_atomic_propositions)
-		self.state_counting_function_map = {}
+		self.mealy_machine = None
+		self.counting_function_to_state_map = {}
 		self.visited_states = []
 
 		self.queries = 0
@@ -98,10 +97,6 @@ class LearnMealyMachine(object):
 		
 		return automata
 
-	def register_ap(self, aut, atomic_propositions):
-		for p in atomic_propositions:
-			aut.register_ap(p)
-
 	def get_bdd_propositions(self, atomic_propositions):
 		# Creating BDD
 		bdd_propositions = []
@@ -128,7 +123,7 @@ class LearnMealyMachine(object):
 		return bdd_list
 
 	def get_state_label(self, val):
-		for key, value in self.state_counting_function_map.items():
+		for key, value in self.counting_function_to_state_map.items():
 			 if val == value:
 				 return key
 	 
@@ -145,14 +140,14 @@ class LearnMealyMachine(object):
 		node_label_dict[num_states] = MealyState("[]")
 		initial_node = node_label_dict[0]
 
-		self.state_counting_function_map[str(waiting[0])] = initial_node
+		self.counting_function_to_state_map[str(waiting[0])] = initial_node
 		self.visited_states.append(waiting[0])
 		
 		while len(waiting) > 0:
 			from_count_fn = random.choice(waiting)
 			waiting.remove(from_count_fn)
 			
-			from_state = self.state_counting_function_map[str(from_count_fn)]
+			from_state = self.counting_function_to_state_map[str(from_count_fn)]
 			
 			for i in self.bdd_inputs:
 				dst_count_fn, o = self.query(from_count_fn, i)
@@ -160,7 +155,7 @@ class LearnMealyMachine(object):
 				output_formula = str(spot.bdd_to_formula(o))
 				
 				if dst_count_fn in self.visited_states:
-					to_state = self.state_counting_function_map[str(dst_count_fn)]
+					to_state = self.counting_function_to_state_map[str(dst_count_fn)]
 				else:
 					self.visited_states.append(dst_count_fn)
 					waiting.append(dst_count_fn)
@@ -171,12 +166,12 @@ class LearnMealyMachine(object):
 						+ ".[{}][{}]".format(input_formula, output_formula))
 
 					to_state = node_label_dict[num_states]
-					self.state_counting_function_map[str(dst_count_fn)] = to_state
+					self.counting_function_to_state_map[str(dst_count_fn)] = to_state
 				
 				from_state.transitions[input_formula] = to_state
 				from_state.output_fun[input_formula] = output_formula
 		
-		self.mealy_machine_aalpy = MealyMachine(initial_node, list(node_label_dict.values()))
+		self.mealy_machine = MealyMachine(initial_node, list(node_label_dict.values()))
 	
 	def get_transition_state(self, state_vector, edge_formula):
 		dst_state_vector = []
@@ -257,10 +252,10 @@ class LearnMealyMachine(object):
 				continue
 			
 			best_choice_list.append([current_state_vector, o])
-			
-
+		
+		print("".join(["-"]*100))
 		print("Action after sequence " 
-			+ self.state_minimal_word_map[self.state_counting_function_map[str(state_vector)]]
+			+ self.counting_function_to_state_map[str(state_vector)].state_id
 			+ '.' + str(spot.bdd_to_formula(i))
 			+ " is chosen as: " + str(spot.bdd_to_formula(output_choice)))
 		
@@ -276,30 +271,52 @@ class LearnMealyMachine(object):
 			if chooseToModify in "yY":
 				self.userQueries += 1
 				while True:
+					output_choice = input("Enter preferred action: ")
 					for o in self.bdd_outputs:
-						output_choice = input("Enter preferred action: ")
 						if output_choice == str(spot.bdd_to_formula(o)):
 							output_choice = o
 							dst_state_vector = self.get_transition_state(state_vector, i & o)
 							return {"dst_state": dst_state_vector, "output": output_choice}
-					print("Invalid action. Choose amongst: " + ", ".join(list(map(lambda x: str(spot.bdd_to_formula(x)), self.bdd_outputs))))
+					print("Invalid action. Choose amongst: " \
+						+ ", ".join(list(
+							map(lambda x: str(spot.bdd_to_formula(x)),
+							 self.bdd_outputs))))
 		return [dst_state_vector, output_choice]
 
 def execute_main():
 	formula = input("Enter LTL formula: ")
 
-	input_atomic_propositions = input("Enter Input Atomic Prositions (space-separated): ")
+	input_atomic_propositions = \
+		input("Enter Input Atomic Prositions (space-separated): ")
 	input_atomic_propositions = input_atomic_propositions.split(" ")
 
-	output_atomic_propositions = input("Enter Output Atomic Prositions (space-separated): ")
+	output_atomic_propositions = \
+		input("Enter Output Atomic Prositions (space-separated): ")
 	output_atomic_propositions = output_atomic_propositions.split(" ")
 
-	m = LearnMealyMachine(2, str(formula), input_atomic_propositions, output_atomic_propositions)
+	m = LearnMealyMachine(
+		k=2,
+		psi=formula,
+		input_atomic_propositions=input_atomic_propositions,
+		output_atomic_propositions=output_atomic_propositions,
+		user_modifications=True)
 	m.build_mealy()
 	visualize_automaton(
-		self.mealy_machine_aalpy,
+		m.mealy_machine,
 		file_type="svg"
 	)
+	sul = MealySUL(m.mealy_machine)
+	print(m.mealy_machine.get_input_alphabet())
+	eq_oracle = StatePrefixEqOracle(
+		m.mealy_machine.get_input_alphabet(),
+		sul,
+		walks_per_state=20,
+		walk_len=20
+	)
+
+	learned_dfa = run_Lstar(m.mealy_machine.get_input_alphabet(), sul, 
+		eq_oracle, automaton_type='mealy')
+
 
 def test():
 	m = LearnMealyMachine(2, 'G(p->Fgp) & G(q->Fgq) & G(!(gp & gq))', ['p', 'q'], ['gp', 'gq'])
