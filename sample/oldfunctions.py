@@ -198,3 +198,165 @@ def complete_mealy(state: MealyState, mealy_machine: MealyMachine, UCBObject: UC
 			state.output_fun[str_i] = bdd_to_str(output_choice)
 		if next_state not in visited_states:
 			complete_mealy(next_state, mealy_machine, UCBObject, visited_states)
+
+class LearnMealyMachine(object):
+	"""docstring for LearnMealyMachine"""
+
+	def __init__(
+			self, k, psi, input_atomic_propositions, 
+			output_atomic_propositions, user_modifications=False):
+		super(LearnMealyMachine, self).__init__()
+		self.k = k
+		self.compute_winning(psi, input_atomic_propositions, 
+							 output_atomic_propositions)
+
+		# universal co-buchi of formula
+		self.ucb_num_states = self.ucb.num_states()
+		
+		# proposition list
+		self.bdd_inputs = self.get_proposition_list(
+			self.get_bdd_propositions(input_atomic_propositions))
+		self.bdd_outputs = self.get_proposition_list(
+			self.get_bdd_propositions(output_atomic_propositions))
+
+		self.mealy_machine = None
+		self.counting_function_to_state_map = {}
+		self.visited_states = []
+
+		self.queries = 0
+		self.userQueries = 0
+		self.user_modifications = user_modifications
+	
+	def build_mealy(self):
+		k = 1
+		waiting = []
+		waiting.append([-1]*self.ucb_num_states)
+		waiting[0][self.ucb.get_init_state_number()] = 0
+
+		num_states = 0
+		node_label_dict = dict()
+		node_label_dict[num_states] = MealyState("[]")
+		initial_node = node_label_dict[0]
+
+		self.counting_function_to_state_map[str(waiting[0])] = initial_node
+		self.visited_states.append(waiting[0])
+		
+		while len(waiting) > 0:
+			from_count_fn = random.choice(waiting)
+			waiting.remove(from_count_fn)
+			
+			from_state = self.counting_function_to_state_map[str(from_count_fn)]
+			
+			for i in self.bdd_inputs:
+				dst_count_fn, o = self.query(from_count_fn, i)
+				input_formula = str(spot.bdd_to_formula(i))
+				output_formula = str(spot.bdd_to_formula(o))
+				
+				if dst_count_fn in self.visited_states:
+					to_state = self.counting_function_to_state_map[str(dst_count_fn)]
+				else:
+					self.visited_states.append(dst_count_fn)
+					waiting.append(dst_count_fn)
+					
+					num_states += 1
+					node_label_dict[num_states] = MealyState( 
+						from_state.state_id \
+						+ ".[{}][{}]".format(input_formula, output_formula))
+
+					to_state = node_label_dict[num_states]
+					self.counting_function_to_state_map[str(dst_count_fn)] = to_state
+				
+				from_state.transitions[input_formula] = to_state
+				from_state.output_fun[input_formula] = output_formula
+		
+		self.mealy_machine = MealyMachine(initial_node, list(node_label_dict.values()))
+	
+	def get_transition_state(self, state_vector, edge_formula):
+		dst_state_vector = []
+		for state in range(self.ucb_num_states):
+			dst_state_possibilities = []
+			for from_state in range(self.ucb_num_states):
+				if state_vector[from_state] == -1:
+					continue
+				for edge in self.ucb.out(from_state):
+					if edge.dst != state:
+						continue
+					if edge.cond & edge_formula != buddy.bddfalse:
+						dst_state_possibilities.append(min(self.k+1, 
+						(state_vector[from_state] + 
+							1 if self.ucb.state_is_accepting(edge.dst)
+							else 0)
+						))
+			if len(dst_state_possibilities) == 0:
+				dst_state_vector.append(-1)
+				continue
+			dst_state_vector.append(max(dst_state_possibilities))
+		return dst_state_vector
+
+	def query(self, state_vector, i):
+		self.queries += 1
+		
+		dst_state_vector = None
+		output_choice = None
+		
+		unsafe_choice_list = []
+		safe_choice_list = []
+		best_choice_list = []
+		visited_choice_list = []
+		
+		for o in self.bdd_outputs:
+			current_state_vector = self.get_transition_state(state_vector, i & o)
+			if not self.is_safe(current_state_vector):
+				# print("Unsafe choice. Continuing...")
+				unsafe_choice_list.append([current_state_vector, o])
+				continue
+			safe_choice_list.append([current_state_vector, o])
+			
+			if current_state_vector in self.visited_states:
+				visited_choice_list.append([current_state_vector, o])
+			
+			if current_state_vector == dst_state_vector:
+				best_choice_list.append([current_state_vector, o])
+				continue
+			
+			if self.contains(current_state_vector, dst_state_vector):
+				continue
+			if (dst_state_vector == None \
+			  or self.contains(dst_state_vector, current_state_vector) \
+			  or current_state_vector in self.visited_states):
+				dst_state_vector = current_state_vector
+				output_choice = o
+				best_choice_list = [[current_state_vector, o]]
+				continue
+			
+			best_choice_list.append([current_state_vector, o])
+		
+		print("".join(["-"]*100))
+		print("Action after sequence " 
+			+ self.counting_function_to_state_map[str(state_vector)].state_id
+			+ '.' + str(spot.bdd_to_formula(i))
+			+ " is chosen as: " + str(spot.bdd_to_formula(output_choice)))
+		
+		self.print_choice_list(best_choice_list, "Best actions: ")
+		self.print_choice_list(safe_choice_list, "Safe actions: ")
+		self.print_choice_list(visited_choice_list,
+								"Actions that lead to a visited state: ")
+		self.print_choice_list(unsafe_choice_list, "Unsafe actions: ")
+		
+		if self.user_modifications:
+			chooseToModify = input("Modify? (y/n): ")
+			
+			if chooseToModify in "yY":
+				self.userQueries += 1
+				while True:
+					output_choice = input("Enter preferred action: ")
+					for o in self.bdd_outputs:
+						if output_choice == str(spot.bdd_to_formula(o)):
+							output_choice = o
+							dst_state_vector = self.get_transition_state(state_vector, i & o)
+							return {"dst_state": dst_state_vector, "output": output_choice}
+					print("Invalid action. Choose amongst: " \
+						+ ", ".join(list(
+							map(lambda x: str(spot.bdd_to_formula(x)),
+							 self.bdd_outputs))))
+		return [dst_state_vector, output_choice]
