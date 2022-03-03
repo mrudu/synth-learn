@@ -7,7 +7,8 @@ from completeAlgorithm import *
 import copy
 import json
 
-with open("example.json", "r") as read_file:
+file_name = input("Enter name of json_file:")
+with open('examples/' + file_name, "r") as read_file:
     data = json.load(read_file)
 
 traces = data['traces']

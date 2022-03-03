@@ -1,5 +1,6 @@
 from aalpy.automata import MealyState, MealyMachine
 from prefixTreeBuilder import *
+from mealyMachineBuilder import checkCFSafety
 
 def complete_mealy_machine(mealy_machine, UCBWrapper):
 	counting_functions_in_use = []
@@ -12,13 +13,18 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 	
 	while len(state_queue) > 0:
 		state = state_queue[0]
+		print("Checking state " + state.state_id)
+		state_queue = state_queue[1:]
 		if state == None:
-			pass
-		state_queue = state_queue[1:]	
+			continue
 		for i_bdd in UCBWrapper.bdd_inputs:
 			i_str = bdd_to_str(i_bdd)
+			print("Checking for transition " + i_str)
 			if i_str in state.transitions.keys():
 				next_state = state.transitions[i_str]
+				print(i_str + " is in transitions already.")
+				print("{} , {} -> {}".format(state.state_id, i_str,
+					next_state.state_id))
 			else:
 				next_counting_function, o_bdd = query(
 					state.counting_function,
@@ -26,24 +32,45 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 					UCBWrapper,
 					state.state_id,
 					counting_functions_in_use)
-				if next_counting_function in counting_functions_in_use:
-					next_state = get_state_from_counting_function(
-						next_counting_function, mealy_machine.states)
-				else:
-					next_state = MealyState(state.state_id + \
-						"({}.{})".format(i_str, bdd_to_str(o_bdd)))
-					next_state.counting_function = next_counting_function
-					counting_functions_in_use.append(next_counting_function)
-					mealy_machine.states.append(next_state)
-				state.transitions[i_str] = next_state
+
 				state.output_fun[i_str] = bdd_to_str(o_bdd)
+				next_state = get_state_from_counting_function(
+						next_counting_function, mealy_machine.states, 
+						UCBWrapper)
+				if next_state is not None:
+					state.transitions[i_str] = next_state
+				else:
+					transitionAdded = False
+					for next_state in mealy_machine.states:
+						state.transitions[i_str] = next_state
+						initialize_counting_function(mealy_machine, UCBWrapper.num_states)
+						if checkCFSafety(mealy_machine, UCBWrapper):
+							transitionAdded = True
+							break
+					if not transitionAdded:
+						next_state = MealyState(state.state_id + \
+							"({}.{})".format(i_str, bdd_to_str(o_bdd)))
+						mealy_machine.states.append(next_state)
+						next_state.counting_function = next_counting_function
+						state.transitions[i_str] = next_state
+						print("Creating new state " + state.state_id)
+					counting_functions_in_use = []
+					for s in mealy_machine.states:
+						counting_functions_in_use.append(
+							s.counting_function)
+				print("Creating new transition for: " + i_str)
+				print("{} , {} -> {}".format(state.state_id, i_str,
+					next_state.state_id))
 			if next_state not in visited_states:
+				if next_state is None:
+					print("State is none")
 				state_queue.append(next_state)
 				visited_states.append(next_state)
 
-def get_state_from_counting_function(counting_function, states):
+def get_state_from_counting_function(counting_function, states, 
+	machine):
 	for state in states:
-		if state.counting_function == counting_function:
+		if machine.contains(state.counting_function, counting_function):
 			return state
 
 def print_choice_list(choice_list, choice_name):
