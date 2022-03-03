@@ -2,5 +2,6 @@
   "LTL": "G(p->Fgp) & G(q->Fgq) & G(!(gp & gq))", 
   "input_atomic_propositions": ["p", "q"], 
   "output_atomic_propositions": ["gp", "gq"], 
-  "traces": []
+  "traces": ["!p & !q.!gp & !gq", 
+    "p & q.gp & !gq"]
 }
