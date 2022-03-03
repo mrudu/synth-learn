@@ -5,14 +5,13 @@ from mealyMachineBuilder import *
 from completeAlgorithm import *
 
 import copy
+import json
 
-# Build the Universal Co-Buchi Automata
-LTL_formula = 'G(p->Fgp) & G(q->Fgq) & G(!(gp & gq))'
-input_atomic_propositions = ['p', 'q']
-output_atomic_propositions = ['gp', 'gq']
+with open("example.json", "r") as read_file:
+    data = json.load(read_file)
 
-# Sample Traces
-traces = [['!p & !q', 'gp & !gq'],['p & !q', 'gp & !gq'] , ['!p & q', 'gp & !gq'], ['p & q', 'gp & !gq'], ['!p & !q', 'gp & !gq', '!p & !q', '!gp & gq'], ['p & !q', 'gp & !gq', 'p & !q', '!gp & gq']]
+traces = data['traces']
+traces = list(map(lambda x: x.split('.'), traces))
 
 
 def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, k = 2):
@@ -62,5 +61,5 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 		exclude_pairs = []
 	return [mealy_machine, exclude_pairs]
 
-build_mealy(LTL_formula, input_atomic_propositions,
-	output_atomic_propositions, traces, 2)
+build_mealy(data['LTL'], data['input_atomic_propositions'],
+	data['output_atomic_propositions'], traces, 2)
