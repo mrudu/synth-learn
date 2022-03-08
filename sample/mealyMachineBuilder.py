@@ -33,8 +33,10 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 		s1 = state.state_id[0]
 		s2 = state.state_id[1]
 		state.bad_state = False
+		state.score = 0
 		for i in s1.transitions.keys():
 			if i in s2.transitions.keys():
+				state.score += 1
 				transition_state_id = [s1.transitions[i], s2.transitions[i]]
 				transition_state = get_state_from_id(transition_state_id, states)
 				state.transitions[i] = transition_state
@@ -93,20 +95,30 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 
 def mergeAndPropogate(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):
 	propogate_queue = [[s1, s2]]
-	states = mealy_machine.states
-	root = mealy_machine.initial_state
+	print("-------------------------------")
 	while len(propogate_queue) > 0:
 		s1, s2 = propogate_queue[0]
-		if s1 not in states or s2 not in states:
-			continue	
 		propogate_queue = propogate_queue[1:]
+		print("Merge Step:")
+		print("{} {}".format(s1.state_id, s2.state_id))
+		if s1 not in mealy_machine.states or s2 not in mealy_machine.states:
+			print("Not found in states")
+			continue
 		if s1 == s2:
 			continue
 		propogate_queue.extend(mergeOperation(s1, s2, mealy_machine))
-		states.remove(s2)
-		if s2 == root:
-			root = s1
-	return MealyMachine(root, states)
+		print("Printing Queue:")
+		print(list("{} {}".format(pair[0].state_id, 
+			pair[1].state_id) for pair in propogate_queue))
+		print("Before remove states:")
+		print(list(state.state_id for state in mealy_machine.states))
+		mealy_machine.states.remove(s2)
+		print("After remove states:")
+		print(list(state.state_id for state in mealy_machine.states))
+		if s2 == mealy_machine.initial_state:
+			mealy_machine.initial_state = s1
+	print("-------------------------------")
+	return mealy_machine
 
 
 def mergeOperation(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):

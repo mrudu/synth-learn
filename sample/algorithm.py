@@ -21,28 +21,47 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	mealy_machine = build_prefix_tree(traces)
 
 	# Check if K is appropriate
-	kunSafe = True
+	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
-	while kunSafe:
+	while k_unsafe:
 		initialize_counting_function(mealy_machine, UCBWrapper.num_states)
 		if checkCFSafety(mealy_machine, UCBWrapper):
-			kunSafe = False
+			k_unsafe = False
 			break
 		k = k + 1
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 
 	### STEP 2 ###
 	# Merge compatible nodes
-	pair = get_compatible_node(mealy_machine)
+	pairs = get_compatible_node(mealy_machine)
 	exclude_pairs = []
-	while pair is not None:
-		mealy_machine, exclude_pairs = merge_compatible_nodes(pair,
-			exclude_pairs, mealy_machine, UCBWrapper)
-		pair = get_compatible_node(mealy_machine, exclude_pairs)
+	count = 0
+	while len(pairs) > 0 and count < 35:
+		pair = pairs[0]
+		if checkIfExcluded(pair, exclude_pairs):
+			pairs = pairs[1:]
+			continue
+		mealy_machine, exclude_pairs, isMerged = merge_compatible_nodes(
+			pair, exclude_pairs, mealy_machine, UCBWrapper)
+		if isMerged:
+			pairs = get_compatible_node(mealy_machine)
+			print("Printing compatible nodes")
+			print(list("{} {}".format(pair[0].state_id, 
+				pair[1].state_id) for pair in pairs))
+		else:
+			pairs = get_compatible_node(mealy_machine)
+			pairs = pairs[1:]
+			print("Printing excluded pairs")
+			print(list("{} {}".format(pair[0].state_id, 
+				pair[1].state_id) for pair in exclude_pairs))
+		print("Printing States:")
+		print(list(state.state_id for state in mealy_machine.states))
+		count += 1
+		print(count)
 	
 	### STEP 3 ###
 	# Complete mealy machine
-	complete_mealy_machine(mealy_machine, UCBWrapper)
+	# complete_mealy_machine(mealy_machine, UCBWrapper)
 	visualize_automaton(
 		mealy_machine,
 		file_type="pdf"
@@ -50,17 +69,34 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	return mealy_machine
 
+def checkIfExcluded(pair, exclude_pairs):
+	print("Checking exclusion")
+	print("{} {}".format(pair[0].state_id, pair[1].state_id))
+	print(list("{} {}".format(pair[0].state_id, 
+		pair[1].state_id) for pair in exclude_pairs))
+	for p in exclude_pairs:
+		if p[0].state_id == pair[0].state_id and p[1].state_id == pair[1].state_id \
+			or p[1].state_id == pair[0].state_id and p[0].state_id == pair[1].state_id:
+			return True
+	return False
+
 def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
 	UCBWrapper):
+	print("Attempting Merge")
+	print("{} {}".format(pair[0].state_id, pair[1].state_id))
 	old_mealy_machine = copy.deepcopy(mealy_machine)
+	merged = False
 	mealy_machine = mergeAndPropogate(pair[0], pair[1], mealy_machine)
 	initialize_counting_function(mealy_machine, UCBWrapper.num_states)
 	if not checkCFSafety(mealy_machine, UCBWrapper):
+		print("Merge Unsuccessful")
 		mealy_machine = old_mealy_machine
 		exclude_pairs.append(pair)
 	else:
+		print("Merge Successful")
 		exclude_pairs = []
-	return [mealy_machine, exclude_pairs]
+		merged = True
+	return [mealy_machine, exclude_pairs, merged]
 
 build_mealy(data['LTL'], data['input_atomic_propositions'],
 	data['output_atomic_propositions'], traces, 2)
