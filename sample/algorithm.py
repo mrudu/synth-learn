@@ -35,8 +35,8 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	# Merge compatible nodes
 	pairs = get_compatible_node(mealy_machine)
 	exclude_pairs = []
-	count = 0
-	while len(pairs) > 0 and count < 35:
+	count = 1
+	while len(pairs) > 0:
 		pair = pairs[0]
 		if is_excluded(pair, exclude_pairs):
 			pairs = pairs[1:]
@@ -45,7 +45,11 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			pair, exclude_pairs, mealy_machine, UCBWrapper)
 		pairs = get_compatible_node(mealy_machine)
 		if not isMerged:
-			pairs = pairs[1:]
+			pairs = pairs[count:]
+			count += 1
+		else:
+			count = 1
+
 
 	
 	### STEP 3 ###
