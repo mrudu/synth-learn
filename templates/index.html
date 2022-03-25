@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Create Mealy Machine</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+</head>
+<body>
+	<nav class="navbar navbar-light bg-light">
+	  <div class="container-fluid">
+	    <ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link active" aria-current="page" href="#" data-bs-toggle="collapse" data-bs-target="#collapse-LTL" aria-expanded="true" aria-controls="collapse-LTL">LTL Formula</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target="#collapse-propositions" aria-expanded="false" aria-controls="collapse-propositions">Propositions</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target="#collapse-traces" aria-expanded="false" aria-controls="collapse-traces">Traces</a>
+			</li>
+		</ul>
+	  </div>
+	</nav>
+	<div class="container">
+		<form action="/" method="POST" class="row">
+			<div class="card" id="collapse-LTL">
+				<div class="card-body">
+					<h5 class="card-title">LTL Formula input</h5>
+					<div class="mb-3">
+						<label for="LTL" class="form-label">LTL</label>
+						<input type="text" class="form-control" id="LTL" name="LTL" placeholder="Enter LTL formula">
+					</div>
+				</div>
+				<div class="card-body">
+					<div class="mb-3">
+						<label for="input_atomic_propositions" class="form-label">Input Propositions</label>
+						<input type="text" class="form-control" id="input_atomic_propositions" name="input_atomic_propositions" placeholder="Enter input propositions e.g. p1 p2 p3">
+					</div>
+					<div class="mb-3">
+						<label for="output_atomic_propositions" class="form-label">Output Propositions</label>
+						<input type="text" class="form-control" id="output_atomic_propositions" name="output_atomic_propositions" placeholder="Enter output propositions e.g. gp1 gp2 gp3">
+					</div>
+				</div>
+				<div class="card-body">
+					<div class="create-trace mb-3">
+						<div class="row">
+							<div id="input-propositions-trace" class="col text-center"></div>
+							<div id="output-propositions-trace" class="col text-center"></div>
+						</div>
+					</div>
+					<div class="trace-display"></div>
+					<div class="mb-3">
+						<label for="traces" class="form-label">Traces</label>
+						<input type="text" class="form-control" id="traces" name="traces" placeholder="Enter traces seperated by commas">
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+		</form>
+		<button class="btn btn-primary" id="refresh">Refresh</button>
+		<img id="image" src="{{ url_for('static', filename='LearnedModel.svg') }}" alt="File Not Loaded Yet. Please, to refresh">
+	</div>
+</body>
+</html>

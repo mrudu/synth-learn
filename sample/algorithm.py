@@ -7,14 +7,6 @@ from completeAlgorithm import *
 import copy
 import json
 
-file_name = input("Enter name of json_file:")
-with open('examples/' + file_name, "r") as read_file:
-    data = json.load(read_file)
-
-traces = data['traces']
-traces = list(map(lambda x: x.split('.'), traces))
-
-
 def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, k = 2):
 	### STEP 1 ###
 	# Build Prefix Tree Mealy Machine
@@ -22,6 +14,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	# Check if K is appropriate
 	kunSafe = True
+	kLimit = 10
 	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 	while kunSafe:
 		initialize_counting_function(mealy_machine, UCBWrapper.num_states)
@@ -29,6 +22,9 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			kunSafe = False
 			break
 		k = k + 1
+		if k > kLimit:
+			print('UNREALIZABLE')
+			return None
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 
 	### STEP 2 ###
@@ -45,7 +41,8 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	complete_mealy_machine(mealy_machine, UCBWrapper)
 	visualize_automaton(
 		mealy_machine,
-		file_type="pdf"
+		file_type="svg",
+		path="static/LearnedModel"
 	)
 
 	return mealy_machine
@@ -61,6 +58,3 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 	else:
 		exclude_pairs = []
 	return [mealy_machine, exclude_pairs]
-
-build_mealy(data['LTL'], data['input_atomic_propositions'],
-	data['output_atomic_propositions'], traces, 2)

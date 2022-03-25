@@ -360,3 +360,12 @@ class LearnMealyMachine(object):
 							map(lambda x: str(spot.bdd_to_formula(x)),
 							 self.bdd_outputs))))
 		return [dst_state_vector, output_choice]
+
+file_name = input("Enter name of json_file:")
+with open('examples/' + file_name, "r") as read_file:
+    data = json.load(read_file)
+
+traces = data['traces']
+traces = list(map(lambda x: x.split('.'), traces))
+build_mealy(data['LTL'], data['input_atomic_propositions'],
+	data['output_atomic_propositions'], traces, 2)
