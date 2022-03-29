@@ -11,9 +11,6 @@ file_name = input("Enter name of json_file:")
 with open('examples/' + file_name, "r") as read_file:
     data = json.load(read_file)
 
-traces = data['traces']
-traces = list(map(lambda x: x.split('.'), traces))
-
 
 def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, k = 2):
 	### STEP 1 ###
@@ -76,5 +73,10 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 		merged = True
 	return [mealy_machine, exclude_pairs, merged]
 
-build_mealy(data['LTL'], data['input_atomic_propositions'],
-	data['output_atomic_propositions'], traces, 2)
+def parse_json(data):
+	LTL_formula = "((" + ') & ('.join(data['assumptions']) + "))->((" + ') & ('.join(data['guarantees']) + "))"
+	traces = data['traces']
+	traces = list(map(lambda x: x.split('.'), traces))
+	build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, 2)
+
+parse_json(data)
