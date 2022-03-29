@@ -1,0 +1,7 @@
+{
+  "assumptions": ["G(softbrake->(!hardbrake & !brakeoff))", "G(hardbrake->(!softbrake & !brakeoff))", "G(brakeoff->(!hardbrake & !softbrake))", "G(softbrake | hardbrake | brakeoff)", "G(F(brakeoff))", "G(F(softbrake))", "G(F(hardbrake))"], 
+  "guarantees": ["G(assist->(!brakeregenerate & !idle))", "G(idle->(!brakeregenerate & !assist))", "G(brakeregenerate->(!assist & !idle))", "G(assist | brakeregenerate | idle)", "G(!(assist & X(brakeregenerate)))", "G(!(brakeregenerate & X(assist)))", "G(softbrake->F(brakeregenerate))"], 
+  "input_atomic_propositions": ["softbrake", "hardbrake", "brakeoff"], 
+  "output_atomic_propositions": ["assist", "brakeregenerate", "idle"],
+  "traces" : []
+}
