@@ -33,6 +33,7 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 		s1 = state.state_id[0]
 		s2 = state.state_id[1]
 		state.bad_state = False
+		state.cex = []
 		for i in s1.transitions.keys():
 			if i in s2.transitions.keys():
 				transition_state_id = [s1.transitions[i], s2.transitions[i]]
@@ -40,24 +41,25 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 				state.transitions[i] = transition_state
 				if s1.output_fun[i] != s2.output_fun[i]:
 					state.bad_state = True
-
+					state.cex = [i, s1.output_fun[i]]
 	
 	visited_states = []
 	visited_states.append(root)
 	if root.bad_state:
-		return False
+		return [False, root.cex]
 	stateAdded = True
 	while stateAdded:
 		stateAdded = False
 		for state in visited_states:
 			for i in state.transitions.keys():
 				transition_state = state.transitions[i]
+				transition_state.cex = state.cex + [i, state.state_id[0].output_fun[i]]
 				if transition_state not in visited_states:
 					stateAdded = True
 					if transition_state.bad_state:
-						return False
+						return [False, transition_state.cex]
 					visited_states.append(transition_state)
-	return True
+	return [True, '']
 
 def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 	# Checking CF Safety of the new Mealy Machine
