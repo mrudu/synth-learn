@@ -31,7 +31,7 @@ class UCB(object):
 		src_file = "~/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
 		antichain_lines = []
 		automata_lines = []
-		num_bool_states = 0
+		state_reassignment = []
 		try:
 			command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
 				src_file,
@@ -50,7 +50,7 @@ class UCB(object):
 				l = line.decode()
 				if l == "AUTOMATA":
 					captureAut = True
-				elif l =="BOOLEANSTATES":
+				elif l =="REASSIGNING STATES":
 					captureAut = False
 				elif l == 'ANTICHAINHEADS':
 					captureAntichain = True
@@ -59,7 +59,7 @@ class UCB(object):
 				elif captureAntichain:
 					antichain_lines.append(l)
 				else:
-					num_bool_states = int(l)
+					state_reassignment.append(int(l))
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
@@ -70,9 +70,10 @@ class UCB(object):
 		
 		for line in antichain_lines:
 			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))
-			list_item = list_item[len(list_item) - num_bool_states:] \
-				+ list_item[:len(list_item) - num_bool_states]
-			self.antichain_heads.append(list_item)
+			antichain_vector = []
+			for s in state_reassignment:
+				antichain_vector.append(list_item[s])
+			self.antichain_heads.append(antichain_vector)
 
 		print("Maximal Elements of Antichain: " + str(self.antichain_heads))
 
