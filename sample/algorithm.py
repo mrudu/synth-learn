@@ -41,18 +41,9 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
+	print(checkCFSafety(mealy_machine, UCBWrapper))
 	if target_machine is not None:
 		isComp, cex = isCrossProductCompatible(target_machine, mealy_machine)
-		visualize_automaton(
-			mealy_machine,
-			path="examples/" + file_name + 'mealy',
-			file_type="pdf"
-		)
-		visualize_automaton(
-			target_machine,
-			path="examples/" + file_name + 'target',
-			file_type="pdf"
-		)
 		if not isComp:
 			print('Counter example: ' + ".".join(cex))
 			traces.append(cex)
@@ -60,6 +51,16 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			return parse_json(file_name, traces)
 		else:
 			print("Final machine required traces: " + str(traces))
+			visualize_automaton(
+				mealy_machine,
+				path="examples/" + file_name + 'mealy',
+				file_type="pdf"
+			)
+			visualize_automaton(
+				target_machine,
+				path="examples/" + file_name + 'target',
+				file_type="pdf"
+			)
 	else:
 		visualize_automaton(
 			mealy_machine,

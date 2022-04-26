@@ -74,10 +74,14 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 	count = 0
 	while len(edges_to_visit) > 0:
 		state, i = edges_to_visit[0]
-		transition_state = state.transitions[i]
+		target_state = state.transitions[i]
+		print("From state: " + state.state_id)
+		print("Target state: " + target_state.state_id)
+		print("Input of edge: " + i)
+		print("Output of edge: " + state.output_fun[i])
 		edges_to_visit = edges_to_visit[1:]
 		f1 = state.counting_function
-		f2 = transition_state.counting_function
+		f2 = target_state.counting_function
 
 		i_bdd = spot.formula_to_bdd(i, UCBWrapper.ucb.get_dict(), None)
 		o_bdd = spot.formula_to_bdd(state.output_fun[i], 
@@ -87,10 +91,14 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 			i_bdd & o_bdd), f2)
 		if not UCBWrapper.is_safe(f_):
 			return False
+		print("f_ is " + str(f_))
+		print("f1 is " + str(f1))
+		print("f2 is " + str(f2))
 		if UCBWrapper.contains(f_, f2) and f_ != f2:
-			transition_state.counting_function = f_;
-			for j in transition_state.transitions.keys():
-				edges_to_visit.append([transition_state, j])
+			print("f_ > f2")
+			target_state.counting_function = f_;
+			for j in target_state.transitions.keys():
+				edges_to_visit.append([target_state, j])
 	return True
 
 def mergeAndPropogate(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):

@@ -1,14 +1,14 @@
 digraph "examples/example1" {
 "()" [label="()"];
-"()(!p & q.gp & !gq)" [label="()(!p & q.gp & !gq)"];
-"()" -> "()"  [label="!p & !q/gp & !gq"];
-"()" -> "()"  [label="p & !q/gp & !gq"];
-"()" -> "()(!p & q.gp & !gq)"  [label="!p & q/gp & !gq"];
-"()" -> "()(!p & q.gp & !gq)"  [label="p & q/gp & !gq"];
-"()(!p & q.gp & !gq)" -> "()"  [label="!p & !q/!gp & gq"];
-"()(!p & q.gp & !gq)" -> "()"  [label="!p & q/!gp & gq"];
-"()(!p & q.gp & !gq)" -> "()"  [label="p & !q/!gp & gq"];
-"()(!p & q.gp & !gq)" -> "()"  [label="p & q/!gp & gq"];
+"()(!p & !q.gp & !gq)" [label="()(!p & !q.gp & !gq)"];
+"()" -> "()(!p & !q.gp & !gq)"  [label="!p & !q/gp & !gq"];
+"()" -> "()(!p & !q.gp & !gq)"  [label="p & !q/gp & !gq"];
+"()" -> "()(!p & !q.gp & !gq)"  [label="!p & q/gp & !gq"];
+"()" -> "()(!p & !q.gp & !gq)"  [label="p & q/gp & !gq"];
+"()(!p & !q.gp & !gq)" -> "()"  [label="!p & !q/!gp & gq"];
+"()(!p & !q.gp & !gq)" -> "()"  [label="p & !q/!gp & gq"];
+"()(!p & !q.gp & !gq)" -> "()"  [label="!p & q/!gp & gq"];
+"()(!p & !q.gp & !gq)" -> "()"  [label="p & q/!gp & gq"];
 __start0 [label="", shape=none];
 __start0 -> "()"  [label=""];
 }
