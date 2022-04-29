@@ -92,7 +92,7 @@ def get_state_from_counting_function(counting_function, states,
 def print_choice_list(choice_list, choice_name):
 		if len(choice_list) > 0:
 			print(choice_name + 
-				', '.join(list(map(lambda x: bdd_to_str(x[1]) + "(" + str(x[0]) + ")" 
+				', '.join(list(map(lambda x: bdd_to_str(x[1]) 
 					, choice_list))))
 
 def query(state_vector, i, machine, min_word, counting_functions_in_use):
