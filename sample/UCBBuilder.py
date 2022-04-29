@@ -68,14 +68,14 @@ class UCB(object):
 			print("Cannot execute command.")
 			return
 		
+		print("Maximal Elements of Antichain: ")
 		for line in antichain_lines:
 			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))
 			antichain_vector = []
 			for s in state_reassignment:
 				antichain_vector.append(list_item[s])
+			print(antichain_vector)
 			self.antichain_heads.append(antichain_vector)
-
-		print("Maximal Elements of Antichain: " + str(self.antichain_heads))
 
 	def get_bdd_propositions(self, atomic_propositions):
 		# Creating BDD
@@ -107,13 +107,11 @@ class UCB(object):
 				if state_vector[from_state] == -1:
 					continue
 				for edge in self.ucb.out(from_state):
-					if edge.dst != state:
-						continue
-					if edge.cond & edge_formula != buddy.bddfalse:
+					if edge.dst == state and (edge.cond & edge_formula != buddy.bddfalse):
 						dst_state_possibilities.append(min(self.k+1, 
 						(state_vector[from_state] + 
-							1 if self.ucb.state_is_accepting(edge.dst)
-							else 0)
+							(1 if (self.ucb.state_is_accepting(state))
+							else 0))
 						))
 			if len(dst_state_possibilities) == 0:
 				dst_state_vector.append(-1)

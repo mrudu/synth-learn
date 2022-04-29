@@ -33,19 +33,31 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 					state.state_id,
 					counting_functions_in_use)
 
+				print("Transition from {} with {}/{} gives CF:{}".format(
+					state.state_id, i_str, bdd_to_str(o_bdd), 
+					next_counting_function))
+
 				state.output_fun[i_str] = bdd_to_str(o_bdd)
 				next_state = get_state_from_counting_function(
 						next_counting_function, mealy_machine.states, 
 						UCBWrapper)
+
 				if next_state is not None:
 					state.transitions[i_str] = next_state
-				else:
+					if not checkCFSafety(mealy_machine, UCBWrapper):
+						state.transitions[i_str] = None
+						next_state = None
+					else:
+						print("Transition added to " + str(next_state.state_id))
+				if next_state is None:
 					transitionAdded = False
 					for next_state in mealy_machine.states:
 						state.transitions[i_str] = next_state
-						initialize_counting_function(mealy_machine, UCBWrapper.num_states)
+						initialize_counting_function(mealy_machine,
+							UCBWrapper.num_states)
 						if checkCFSafety(mealy_machine, UCBWrapper):
 							transitionAdded = True
+							print("Transition added to " + str(next_state.state_id))
 							break
 					if not transitionAdded:
 						next_state = MealyState(state.state_id + \
@@ -53,11 +65,15 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 						mealy_machine.states.append(next_state)
 						next_state.counting_function = next_counting_function
 						state.transitions[i_str] = next_state
-						print("Creating new state " + state.state_id)
+						print("Creating new state " + next_state.state_id)
+						print("Transition added to " + str(next_state.state_id))
+					else:
+						for s in mealy_machine.states:
+							print("Counting function of {} is {}".format(
+								s.state_id, s.counting_function))
 					counting_functions_in_use = []
 					for s in mealy_machine.states:
-						counting_functions_in_use.append(
-							s.counting_function)
+						counting_functions_in_use.append(s.counting_function)
 				print("Creating new transition for: " + i_str)
 				print("{} , {} -> {}".format(state.state_id, i_str,
 					next_state.state_id))
