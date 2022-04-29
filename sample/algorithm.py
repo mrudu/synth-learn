@@ -41,7 +41,6 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
-	print(checkCFSafety(mealy_machine, UCBWrapper))
 	if target_machine is not None:
 		isComp, cex = isCrossProductCompatible(target_machine, mealy_machine)
 		if not isComp:
