@@ -1,7 +1,8 @@
 {
-  "LTL": "G(p->Fgp) & G(q->Fgq) & G(!(gp & gq))", 
+  "assumptions": ["true"],
+  "guarantees": ["G(p->Fgp)", "G(q->Fgq)", "G(!(gp & gq))"], 
   "input_atomic_propositions": ["p", "q"], 
-  "output_atomic_propositions": ["gp", "gq"], 
-  "traces": ["!p & !q.!gp & !gq", 
-    "p & q.gp & !gq"]
+  "output_atomic_propositions": ["gp", "gq"],
+  "target": "",
+  "traces": ["p & q.gp & !gq", "!p & q.gp & !gq", "!p & !q.gp & !gq"]
 }

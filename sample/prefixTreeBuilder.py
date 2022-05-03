@@ -39,7 +39,8 @@ def get_compatible_node(mealy_machine, exclude=[]):
 				continue
 			m1 = MealyMachine(s1, states)
 			m2 = MealyMachine(s2, states)
-			if isCrossProductCompatible(m1, m2):
+			isComp, cex = isCrossProductCompatible(m1, m2)
+			if isComp:
 				return [s1, s2]
 	return None
 

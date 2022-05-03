@@ -33,6 +33,7 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 		s1 = state.state_id[0]
 		s2 = state.state_id[1]
 		state.bad_state = False
+		state.cex = []
 		for i in s1.transitions.keys():
 			if i in s2.transitions.keys():
 				transition_state_id = [s1.transitions[i], s2.transitions[i]]
@@ -40,24 +41,27 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 				state.transitions[i] = transition_state
 				if s1.output_fun[i] != s2.output_fun[i]:
 					state.bad_state = True
-
+					state.expected_trace = [i, s1.output_fun[i]]
 	
 	visited_states = []
 	visited_states.append(root)
 	if root.bad_state:
-		return False
+		return [False, root.expected_trace]
 	stateAdded = True
 	while stateAdded:
 		stateAdded = False
 		for state in visited_states:
 			for i in state.transitions.keys():
+				s1 = state.state_id[0]
+				s2 = state.state_id[1]
 				transition_state = state.transitions[i]
+				transition_state.cex = state.cex + [i, state.state_id[0].output_fun[i]]
 				if transition_state not in visited_states:
 					stateAdded = True
 					if transition_state.bad_state:
-						return False
+						return [False, transition_state.cex + transition_state.expected_trace]
 					visited_states.append(transition_state)
-	return True
+	return [True, '']
 
 def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 	# Checking CF Safety of the new Mealy Machine
@@ -72,10 +76,10 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 	count = 0
 	while len(edges_to_visit) > 0:
 		state, i = edges_to_visit[0]
-		transition_state = state.transitions[i]
+		target_state = state.transitions[i]
 		edges_to_visit = edges_to_visit[1:]
 		f1 = state.counting_function
-		f2 = transition_state.counting_function
+		f2 = target_state.counting_function
 
 		i_bdd = spot.formula_to_bdd(i, UCBWrapper.ucb.get_dict(), None)
 		o_bdd = spot.formula_to_bdd(state.output_fun[i], 
@@ -86,9 +90,9 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 		if not UCBWrapper.is_safe(f_):
 			return False
 		if UCBWrapper.contains(f_, f2) and f_ != f2:
-			transition_state.counting_function = f_;
-			for j in transition_state.transitions.keys():
-				edges_to_visit.append([transition_state, j])
+			target_state.counting_function = f_;
+			for j in target_state.transitions.keys():
+				edges_to_visit.append([target_state, j])
 	return True
 
 def mergeAndPropogate(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):

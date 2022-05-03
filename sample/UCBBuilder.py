@@ -31,7 +31,7 @@ class UCB(object):
 		src_file = "~/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
 		antichain_lines = []
 		automata_lines = []
-		num_bool_states = 0
+		state_reassignment = []
 		try:
 			command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
 				src_file,
@@ -50,7 +50,7 @@ class UCB(object):
 				l = line.decode()
 				if l == "AUTOMATA":
 					captureAut = True
-				elif l =="BOOLEANSTATES":
+				elif l =="REASSIGNING STATES":
 					captureAut = False
 				elif l == 'ANTICHAINHEADS':
 					captureAntichain = True
@@ -59,7 +59,7 @@ class UCB(object):
 				elif captureAntichain:
 					antichain_lines.append(l)
 				else:
-					num_bool_states = int(l)
+					state_reassignment.append(int(l))
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
@@ -68,13 +68,14 @@ class UCB(object):
 			print("Cannot execute command.")
 			return
 		
+		print("Maximal Elements of Antichain: ")
 		for line in antichain_lines:
 			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))
-			list_item = list_item[len(list_item) - num_bool_states:] \
-				+ list_item[:len(list_item) - num_bool_states]
-			self.antichain_heads.append(list_item)
-
-		print("Maximal Elements of Antichain: " + str(self.antichain_heads))
+			antichain_vector = []
+			for s in state_reassignment:
+				antichain_vector.append(list_item[s])
+			print(antichain_vector)
+			self.antichain_heads.append(antichain_vector)
 
 	def get_bdd_propositions(self, atomic_propositions):
 		# Creating BDD
@@ -106,13 +107,11 @@ class UCB(object):
 				if state_vector[from_state] == -1:
 					continue
 				for edge in self.ucb.out(from_state):
-					if edge.dst != state:
-						continue
-					if edge.cond & edge_formula != buddy.bddfalse:
+					if edge.dst == state and (edge.cond & edge_formula != buddy.bddfalse):
 						dst_state_possibilities.append(min(self.k+1, 
 						(state_vector[from_state] + 
-							1 if self.ucb.state_is_accepting(edge.dst)
-							else 0)
+							(1 if (self.ucb.state_is_accepting(state))
+							else 0))
 						))
 			if len(dst_state_possibilities) == 0:
 				dst_state_vector.append(-1)
