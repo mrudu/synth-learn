@@ -2,7 +2,8 @@
   "assumptions": ["true"], 
   "guarantees": [
   	"G(!(assist & brakeregenerate))", 
-    "G(!(assist & idle))", "G(!(idle & brakeregenerate))", 
+    "G(!(assist & idle))",
+    "G(!(idle & brakeregenerate))", 
     "G(idle | brakeregenerate | assist)", 
     "G(assist -> !(X(brakeregenerate)))",
     "G(brakeregenerate -> !(X(assist)))",
