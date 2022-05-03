@@ -21,6 +21,10 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	# Check if K is appropriate
 	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+	while UCBWrapper.ucb is None:
+		k = k + 1
+		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+	
 	while k_unsafe:
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if checkCFSafety(mealy_machine, UCBWrapper):
