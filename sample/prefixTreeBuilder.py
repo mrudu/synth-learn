@@ -50,10 +50,10 @@ def is_excluded(pair, exclude_pairs):
 	exclude_pairs = list(map(lambda x: '{}.{}'.format(x[0].state_id, x[1].state_id), exclude_pairs))
 	return pair1 in exclude_pairs or pair2 in exclude_pairs
 
-def initialize_counting_function(mealy, n):
+def initialize_counting_function(mealy, UCBWrapper):
 	for state in mealy.states:
-		state.counting_function = [-1]*n;
-	mealy.initial_state.counting_function[0] = 0
+		state.counting_function = [-1]*UCBWrapper.num_states;
+	mealy.initial_state.counting_function[UCBWrapper.ucb.get_init_state_number()] = 0
 
 
 
