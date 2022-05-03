@@ -26,6 +26,7 @@ def execute_algorithm(data):
     traces = data['traces']
     traces = traces.split(',')
     traces = list(map(lambda x: x.split('.'), traces))
+    target = data['target']
 
-    things = build_mealy(data['LTL'], input_atomic_propositions, output_atomic_propositions, traces, 2)
+    things = build_mealy(data['LTL'], input_atomic_propositions, output_atomic_propositions, traces, None, 2)
     return render_template('index.html', LTL_formula=data['LTL'])
