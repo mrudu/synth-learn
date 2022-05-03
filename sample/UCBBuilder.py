@@ -70,7 +70,7 @@ class UCB(object):
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
-			self.ucb.set_init_state(init_state)
+			self.ucb.set_init_state(state_reassignment.index(init_state))
 		except:
 			print("Cannot execute command.")
 			return

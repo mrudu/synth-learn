@@ -78,7 +78,7 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 	UCBWrapper):
 	old_mealy_machine = copy.deepcopy(mealy_machine)
 	mealy_machine = mergeAndPropogate(pair[0], pair[1], mealy_machine)
-	initialize_counting_function(mealy_machine, UCBWrapper.num_states)
+	initialize_counting_function(mealy_machine, UCBWrapper)
 	if not checkCFSafety(mealy_machine, UCBWrapper):
 		mealy_machine = old_mealy_machine
 		exclude_pairs.append(pair)
