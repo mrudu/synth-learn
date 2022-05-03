@@ -32,6 +32,7 @@ class UCB(object):
 		antichain_lines = []
 		automata_lines = []
 		state_reassignment = []
+		init_state = 0
 		try:
 			command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
 				src_file,
@@ -43,27 +44,33 @@ class UCB(object):
 			command = "multipass exec foobar -- " + command
 
 			op = subprocess.run(command, shell=True, capture_output=True)
-			captureAut = False
+			captureUCB = False
+			captureStateReassignment = False
 			captureAntichain = False
 			
 			for line in op.stdout.splitlines():
 				l = line.decode()
 				if l == "AUTOMATA":
-					captureAut = True
+					captureUCB = True
 				elif l =="REASSIGNING STATES":
-					captureAut = False
-				elif l == 'ANTICHAINHEADS':
+					captureUCB = False
+					captureStateReassignment = True
+				elif l == "INITIAL STATE":
+					captureStateReassignment = False
+				elif l == "ANTICHAINHEADS":
 					captureAntichain = True
-				elif captureAut:
+				elif captureUCB:
 					automata_lines.append(l)
 				elif captureAntichain:
 					antichain_lines.append(l)
-				else:
+				elif captureStateReassignment:
 					state_reassignment.append(int(l))
+				else:
+					init_state = int(l)
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
-		
+			self.ucb.set_init_state(init_state)
 		except:
 			print("Cannot execute command.")
 			return
