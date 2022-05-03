@@ -54,7 +54,7 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 					for next_state in mealy_machine.states:
 						state.transitions[i_str] = next_state
 						initialize_counting_function(mealy_machine,
-							UCBWrapper.num_states)
+							UCBWrapper)
 						if checkCFSafety(mealy_machine, UCBWrapper):
 							transitionAdded = True
 							print("Transition added to " + str(next_state.state_id))

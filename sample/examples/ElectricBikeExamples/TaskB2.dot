@@ -1,4 +1,4 @@
-digraph "examples/example6" {
+digraph "examples/ElectricBikeExamples/TaskB2" {
 "()" [label="()"];
 "()(brake.!assist & !brakeregenerate & idle)" [label="()(brake.!assist & !brakeregenerate & idle)"];
 "()(brake.!assist & !brakeregenerate & idle)(brake.!assist & !brakeregenerate & idle)" [label="()(brake.!assist & !brakeregenerate & idle)(brake.!assist & !brakeregenerate & idle)"];
