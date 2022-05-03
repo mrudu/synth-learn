@@ -15,9 +15,9 @@ class UCB(object):
 		# Compute the antichain
 		self.ucb = None
 		self.antichain_heads = []
-		self.compute_winning(psi, input_atomic_propositions, 
-							 output_atomic_propositions)
-
+		if not (self.compute_winning(psi, input_atomic_propositions, 
+							 output_atomic_propositions)):
+			return
 		# universal co-buchi of formula
 		self.num_states = self.ucb.num_states()
 		
@@ -42,7 +42,6 @@ class UCB(object):
 				self.k)
 
 			command = "multipass exec foobar -- " + command
-
 			op = subprocess.run(command, shell=True, capture_output=True)
 			captureUCB = False
 			captureStateReassignment = False
@@ -50,12 +49,14 @@ class UCB(object):
 			
 			for line in op.stdout.splitlines():
 				l = line.decode()
+				if l == "UNKNOWN" or l == "UNREALIZABLE":
+					return False
 				if l == "AUTOMATA":
 					captureUCB = True
-				elif l =="REASSIGNING STATES":
+				elif l =="REASSIGNINGSTATES":
 					captureUCB = False
 					captureStateReassignment = True
-				elif l == "INITIAL STATE":
+				elif l == "INITIALSTATE":
 					captureStateReassignment = False
 				elif l == "ANTICHAINHEADS":
 					captureAntichain = True
@@ -73,7 +74,7 @@ class UCB(object):
 			self.ucb.set_init_state(state_reassignment.index(init_state))
 		except:
 			print("Cannot execute command.")
-			return
+			return False
 		
 		print("Maximal Elements of Antichain: ")
 		for line in antichain_lines:
@@ -83,6 +84,7 @@ class UCB(object):
 				antichain_vector.append(list_item[s])
 			print(antichain_vector)
 			self.antichain_heads.append(antichain_vector)
+		return True
 
 	def get_bdd_propositions(self, atomic_propositions):
 		# Creating BDD
