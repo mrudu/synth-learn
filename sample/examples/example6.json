@@ -1,0 +1,8 @@
+{
+  "assumptions": ["true"],
+  "guarantees": ["(G F req0 & G F req1)  <-> G F grant"],
+  "target": "",
+  "input_atomic_propositions": ["req0", "req1"], 
+  "output_atomic_propositions": ["grant"], 
+  "traces": []
+}

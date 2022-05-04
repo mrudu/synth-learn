@@ -1,0 +1,19 @@
+digraph "examples/example6" {
+"()" [label="()"];
+"()(!req0 & !req1.grant)" [label="()(!req0 & !req1.grant)"];
+"()(!req0 & !req1.grant)(req0 & !req1.!grant)" [label="()(!req0 & !req1.grant)(req0 & !req1.!grant)"];
+"()" -> "()(!req0 & !req1.grant)"  [label="!req0 & !req1/grant"];
+"()" -> "()"  [label="!req0 & req1/!grant"];
+"()" -> "()(!req0 & !req1.grant)"  [label="req0 & !req1/grant"];
+"()" -> "()"  [label="req0 & req1/grant"];
+"()(!req0 & !req1.grant)" -> "()(!req0 & !req1.grant)"  [label="!req0 & !req1/!grant"];
+"()(!req0 & !req1.grant)" -> "()(!req0 & !req1.grant)"  [label="!req0 & req1/!grant"];
+"()(!req0 & !req1.grant)" -> "()(!req0 & !req1.grant)(req0 & !req1.!grant)"  [label="req0 & !req1/!grant"];
+"()(!req0 & !req1.grant)" -> "()"  [label="req0 & req1/grant"];
+"()(!req0 & !req1.grant)(req0 & !req1.!grant)" -> "()(!req0 & !req1.grant)"  [label="!req0 & !req1/!grant"];
+"()(!req0 & !req1.grant)(req0 & !req1.!grant)" -> "()"  [label="!req0 & req1/grant"];
+"()(!req0 & !req1.grant)(req0 & !req1.!grant)" -> "()(!req0 & !req1.grant)"  [label="req0 & !req1/!grant"];
+"()(!req0 & !req1.grant)(req0 & !req1.!grant)" -> "()"  [label="req0 & req1/grant"];
+__start0 [label="", shape=none];
+__start0 -> "()"  [label=""];
+}
