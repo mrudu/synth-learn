@@ -1,8 +1,9 @@
 {
   "assumptions": ["true"],
-  "guarantees": ["(G F req0 & G F req1)  <-> G F grant"],
-  "target": "",
-  "input_atomic_propositions": ["req0", "req1"], 
-  "output_atomic_propositions": ["grant"], 
-  "traces": []
+  "guarantees": ["G(p->Fgp)", "G(q->Fgq)"],
+  "target": "example7.dot",
+  "input_atomic_propositions": ["p", "q"], 
+  "output_atomic_propositions": ["gp", "gq"], 
+  "traces": [
+  ]
 }
