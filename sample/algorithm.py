@@ -24,6 +24,8 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	while UCBWrapper.ucb is None:
 		k = k + 1
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+		if k > 10:
+			return False
 	
 	while kunSafe:
 		initialize_counting_function(mealy_machine, UCBWrapper)
