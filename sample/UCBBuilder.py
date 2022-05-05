@@ -28,7 +28,7 @@ class UCB(object):
 			output_atomic_propositions)
 
 	def compute_winning(self, psi, inputs, outputs):
-		src_file = "~/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
+		src_file = "/Users/mrudula/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
 		antichain_lines = []
 		automata_lines = []
 		state_reassignment = []
@@ -51,7 +51,7 @@ class UCB(object):
 				l = line.decode()
 				if l == "UNKNOWN" or l == "UNREALIZABLE":
 					return False
-				if l == "AUTOMATA":
+				elif l == "AUTOMATA":
 					captureUCB = True
 				elif l =="REASSIGNINGSTATES":
 					captureUCB = False
@@ -72,10 +72,10 @@ class UCB(object):
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
 			self.ucb.set_init_state(state_reassignment.index(init_state))
-		except:
+		except Exception as e:
 			print("Cannot execute command.")
+			print(e)
 			return False
-		
 		print("Maximal Elements of Antichain: ")
 		for line in antichain_lines:
 			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))

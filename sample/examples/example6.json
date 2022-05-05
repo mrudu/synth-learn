@@ -1,0 +1,9 @@
+{
+  "assumptions": ["true"],
+  "guarantees": ["G(p->Fgp)", "G(q->Fgq)"],
+  "target": "example7.dot",
+  "input_atomic_propositions": ["p", "q"], 
+  "output_atomic_propositions": ["gp", "gq"], 
+  "traces": [
+  ]
+}

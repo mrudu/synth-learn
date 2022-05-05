@@ -2,7 +2,13 @@
   "assumptions": ["true"],
   "guarantees": ["G(p->Fgp)", "G(q->Fgq)"],
   "target": "",
-  "input_atomic_propositions": ["req0", "req1"], 
-  "output_atomic_propositions": ["grant"], 
-  "traces": ["req0.grant.req1.grant.!req0.!grant"]
+  "input_atomic_propositions": ["p", "q"], 
+  "output_atomic_propositions": ["gp", "gq"], 
+  "traces": [ 
+    "p & q.!gp & gq", "p & !q.gp & !gq",
+    "p & q.!gp & gq.p & q.gp & !gq",
+    "p & q.!gp & gq.!p & q.gp & !gq",
+    "p & q.!gp & gq.p & q.gp & !gq.p & q.!gp & gq",
+    "p & q.!gp & gq.p & q.gp & !gq.p & !q.!gp & gq"
+  ]
 }
