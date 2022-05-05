@@ -43,24 +43,23 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 					state.bad_state = True
 					state.expected_trace = [i, s1.output_fun[i]]
 	
-	visited_states = []
-	visited_states.append(root)
+	state_queue = [root]
+	visited_states = [root]
 	if root.bad_state:
 		return [False, root.expected_trace]
-	stateAdded = True
-	while stateAdded:
-		stateAdded = False
-		for state in visited_states:
-			for i in state.transitions.keys():
-				s1 = state.state_id[0]
-				s2 = state.state_id[1]
-				transition_state = state.transitions[i]
-				transition_state.cex = state.cex + [i, state.state_id[0].output_fun[i]]
-				if transition_state not in visited_states:
-					stateAdded = True
-					if transition_state.bad_state:
-						return [False, transition_state.cex + transition_state.expected_trace]
-					visited_states.append(transition_state)
+	while len(state_queue) > 0:
+		state = state_queue[0]
+		state_queue = state_queue[1:]
+		for i in state.transitions.keys():
+			s1 = state.state_id[0]
+			s2 = state.state_id[1]
+			transition_state = state.transitions[i]
+			transition_state.cex = state.cex + [i, state.state_id[0].output_fun[i]]
+			if transition_state not in visited_states:
+				state_queue.append(transition_state)
+				visited_states.append(transition_state)
+				if transition_state.bad_state:
+					return [False, transition_state.cex + transition_state.expected_trace]
 	return [True, '']
 
 def checkCFSafety(mealy: MealyMachine, UCBWrapper):
@@ -119,10 +118,10 @@ def mergeOperation(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):
 		for i in state.transitions.keys():
 			if state.transitions[i] == s2:
 				state.transitions[i] = s1
-			if i in s2.transitions.keys() and s2.transitions[i] == state:
-				if i in s1.transitions.keys():
-					merge_next.append([s1.transitions[i], state])
-				else:
-					s1.transitions[i] = state
-					s1.output_fun[i] = s2.output_fun[i]
+	for i in s2.transitions.keys():
+		if i in s1.transitions.keys():
+			merge_next.append([s1.transitions[i], s2.transitions[i]])
+		else:
+			s1.transitions[i] = s2.transitions[i]
+			s1.output_fun[i] = s2.output_fun[i]
 	return merge_next
