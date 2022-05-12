@@ -1,4 +1,5 @@
 {
+  "comment": "Arbiters Two Process - traces added manually to generate model with 2 states",
   "assumptions": ["true"],
   "guarantees": ["G(p->Fgp)", "G(q->Fgq)", "G(!(gp & gq))"],
   "target": "",

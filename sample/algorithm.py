@@ -9,31 +9,71 @@ import json
 
 file_name = input("Enter name of json_file:")
 
+def check_to_continue():
+	answer = input("Are you sure you wish to continue? (y/Y for yes): ")
+	return (answer in "yY")
 
 def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, file_name, target, k = 2):
 	### STEP 1 ###
 	# Build Prefix Tree Mealy Machine
 	mealy_machine = build_prefix_tree(traces)
-	target_machine = None
-	if len(target) > 0:
-		target_machine = load_automaton_from_file("examples/" + target, automaton_type="mealy")
 
 	# Check if K is appropriate
 	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+	count = 0
 	while UCBWrapper.ucb is None:
+		print("LTL Specification is unsafe for k=" + str(k))
+		count += 1
+		if count == 10:
+			if check_to_continue():
+				count = 0
+			else:
+				return None
 		k = k + 1
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
-		if k > 10:
-			return False
 	
+	print("LTL Specification is safe for k=" + str(k))
+	
+	count = 0
+	# Check if K is appropriate for traces
 	while k_unsafe:
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if checkCFSafety(mealy_machine, UCBWrapper):
+			print("Traces is safe for k=" + str(k))
 			k_unsafe = False
 			break
 		k = k + 1
+		print("Traces is unsafe for k=" + str(k))
+		count += 1
+		if count == 10:
+			if check_to_continue():
+				count = 0
+			else:
+				return None
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+
+	# Check if K is appropriate for target
+	target_machine = None
+	if len(target) > 0:
+		target_machine = load_automaton_from_file("examples/" + target, automaton_type="mealy")
+		k_unsafe = True
+		count = 0
+		while k_unsafe:
+			initialize_counting_function(target_machine, UCBWrapper)
+			if checkCFSafety(target_machine, UCBWrapper):
+				print('Target is safe for k=' + str(k))
+				k_unsafe = False
+				break
+			k = k + 1
+			print('Target is unsafe for k=' + str(k))
+			count += 1
+			if count == 10:
+				if check_to_continue():
+					count = 0
+				else:
+					return None
+			UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 
 	### STEP 2 ###
 	# Merge compatible nodes

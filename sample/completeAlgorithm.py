@@ -44,6 +44,8 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 
 				if next_state is not None:
 					state.transitions[i_str] = next_state
+					initialize_counting_function(mealy_machine,
+							UCBWrapper)
 					if not checkCFSafety(mealy_machine, UCBWrapper):
 						state.transitions[i_str] = None
 						next_state = None
