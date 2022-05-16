@@ -94,8 +94,10 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 		else:
 			count = 1
 
+	### STEP 2.5 ###
+	# Mark nodes in "pre-machine"
+	mark_nodes(mealy_machine)
 
-	
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
@@ -131,6 +133,10 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 		)
 
 	return mealy_machine
+
+def mark_nodes(mealy_machine):
+	for state in mealy_machine.states:
+		state.special_node = True
 
 def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
 	UCBWrapper):

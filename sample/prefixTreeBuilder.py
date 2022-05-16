@@ -3,6 +3,7 @@ from aalpy.automata import MealyState, MealyMachine
 import spot
 import buddy
 from mealyMachineBuilder import isCrossProductCompatible
+from functools import cmp_to_key
 
 def bdd_to_str(bdd_arg):
 	return str(spot.bdd_to_formula(bdd_arg))
@@ -51,6 +52,7 @@ def get_compatible_node(mealy_machine, exclude=[]):
 			isComp, cex = isCrossProductCompatible(m1, m2)
 			if isComp:
 				pair_nodes.append([s1, s2])
+	pair_nodes = sorted(pair_nodes, key=lambda x: distance_nodes(x[0], x[1]))
 	return pair_nodes
 
 def is_excluded(pair, exclude_pairs):
