@@ -18,8 +18,8 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	# Build Prefix Tree Mealy Machine
 	mealy_machine = build_prefix_tree(traces)
 
-	# Check if K is appropriate for LTL specifications
-	kunSafe = True
+	# Check if K is appropriate
+	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 	count = 0
 	while UCBWrapper.ucb is None:
@@ -37,11 +37,11 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	
 	count = 0
 	# Check if K is appropriate for traces
-	while kunSafe:
+	while k_unsafe:
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if checkCFSafety(mealy_machine, UCBWrapper):
 			print("Traces is safe for k=" + str(k))
-			kunSafe = False
+			k_unsafe = False
 			break
 		k = k + 1
 		print("Traces is unsafe for k=" + str(k))
@@ -77,13 +77,27 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	### STEP 2 ###
 	# Merge compatible nodes
-	pair = get_compatible_node(mealy_machine)
+	pairs = get_compatible_node(mealy_machine)
 	exclude_pairs = []
-	while pair is not None:
-		mealy_machine, exclude_pairs = merge_compatible_nodes(pair,
-			exclude_pairs, mealy_machine, UCBWrapper)
-		pair = get_compatible_node(mealy_machine, exclude_pairs)
-	
+	count = 1
+	while len(pairs) > 0:
+		pair = pairs[0]
+		if is_excluded(pair, exclude_pairs):
+			pairs = pairs[1:]
+			continue
+		mealy_machine, exclude_pairs, isMerged = merge_compatible_nodes(
+			pair, exclude_pairs, mealy_machine, UCBWrapper)
+		pairs = get_compatible_node(mealy_machine)
+		if not isMerged:
+			pairs = pairs[count:]
+			count += 1
+		else:
+			count = 1
+
+	### STEP 2.5 ###
+	# Mark nodes in "pre-machine"
+	mark_nodes(mealy_machine)
+
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
@@ -120,9 +134,14 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	return mealy_machine
 
+def mark_nodes(mealy_machine):
+	for state in mealy_machine.states:
+		state.special_node = True
+
 def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
 	UCBWrapper):
 	old_mealy_machine = copy.deepcopy(mealy_machine)
+	merged = False
 	mealy_machine = mergeAndPropogate(pair[0], pair[1], mealy_machine)
 	initialize_counting_function(mealy_machine, UCBWrapper)
 	if not checkCFSafety(mealy_machine, UCBWrapper):
@@ -130,7 +149,8 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 		exclude_pairs.append(pair)
 	else:
 		exclude_pairs = []
-	return [mealy_machine, exclude_pairs]
+		merged = True
+	return [mealy_machine, exclude_pairs, merged]
 
 def parse_json(file_name, new_traces = []):
 	with open('examples/' + file_name + ".json", "r") as read_file:

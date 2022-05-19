@@ -1,12 +1,17 @@
 from aalpy.automata import MealyState, MealyMachine
 from prefixTreeBuilder import *
 from mealyMachineBuilder import checkCFSafety
+import functools
 
 def complete_mealy_machine(mealy_machine, UCBWrapper):
 	counting_functions_in_use = []
+	special_counting_functions_in_use = []
 	
 	for state in mealy_machine.states:
-		counting_functions_in_use.append(state.counting_function)
+		if state.special_node:
+			special_counting_functions_in_use.append(state.counting_function)
+		else:
+			counting_functions_in_use.append(state.counting_function)
 
 	state_queue = [mealy_machine.initial_state]
 	visited_states = [mealy_machine.initial_state]
@@ -31,7 +36,8 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 					i_bdd,
 					UCBWrapper,
 					state.state_id,
-					counting_functions_in_use)
+					counting_functions_in_use,
+					special_counting_functions_in_use)
 
 				print("Transition from {} with {}/{} gives CF:{}".format(
 					state.state_id, i_str, bdd_to_str(o_bdd), 
@@ -91,13 +97,39 @@ def get_state_from_counting_function(counting_function, states,
 		if machine.contains(state.counting_function, counting_function):
 			return state
 
-def print_choice_list(choice_list, choice_name):
-		if len(choice_list) > 0:
-			print(choice_name + 
-				', '.join(list(map(lambda x: bdd_to_str(x[1]) 
-					, choice_list))))
+def check_if_cf_in_list(current_state_vector, cf_list, machine):
+	for cf in cf_list:
+		if machine.contains(cf, current_state_vector):
+			return True
+	return False
 
-def query(state_vector, i, machine, min_word, counting_functions_in_use):
+def print_choice_list(choice_list, choice_name):
+	print(choice_name + ', '.join(list(map(lambda x: bdd_to_str(x[1]) + ": " + str(x[0])
+		, choice_list))))
+
+def contains(vector_1, vector_2):
+	for i in range(len(vector_1)):
+		if vector_1[i] > vector_2[i]:
+			return False
+	return True
+
+def sort_counting_functions(vector_1, vector_2):
+	if contains(vector_1[0], vector_2[0]):
+		return -1
+	elif contains(vector_2[0], vector_1[0]):
+		return 1
+	elif max(vector_1[0]) < max(vector_2[0]):
+		return -1
+	elif max(vector_1[0]) > max(vector_2[0]):
+		return 1
+	elif (sum(vector_1[0])) < (sum(vector_2[0])):
+		return -1
+	elif (sum(vector_1[0])) > (sum(vector_2[0])):
+		return 1
+	else:
+		return 0
+
+def query(state_vector, i, machine, min_word, counting_functions_in_use, special_counting_functions_in_use):
 		
 	dst_state_vector = None
 	output_choice = None
@@ -105,6 +137,7 @@ def query(state_vector, i, machine, min_word, counting_functions_in_use):
 	unsafe_choice_list = []
 	safe_choice_list = []
 	best_choice_list = []
+	preferred_visited_choice_list = []
 	visited_choice_list = []
 	
 	for o in machine.bdd_outputs:
@@ -116,33 +149,34 @@ def query(state_vector, i, machine, min_word, counting_functions_in_use):
 			continue
 		safe_choice_list.append([current_state_vector, o])
 		
-		if str(current_state_vector) in counting_functions_in_use:
-			visited_choice_list.append([current_state_vector, o])
+		if (len(special_counting_functions_in_use) > 0):
+			if check_if_cf_in_list(current_state_vector, special_counting_functions_in_use, machine):
+				preferred_visited_choice_list.append([current_state_vector, o])
 		
-		if current_state_vector == dst_state_vector:
-			best_choice_list.append([current_state_vector, o])
-			continue
-		
-		if machine.contains(current_state_vector, dst_state_vector):
-			continue
-		if (dst_state_vector == None \
-		  or machine.contains(dst_state_vector, current_state_vector) \
-		  or str(current_state_vector) in counting_functions_in_use):
-			dst_state_vector = current_state_vector
-			output_choice = o
-			best_choice_list = [[current_state_vector, o]]
-			continue
-		
-		best_choice_list.append([current_state_vector, o])
+		if (len(counting_functions_in_use) > 0):
+			if check_if_cf_in_list(current_state_vector, counting_functions_in_use, machine):
+				visited_choice_list.append([current_state_vector, o])
+
+
+	preferred_visited_choice_list = sorted(preferred_visited_choice_list, key=functools.cmp_to_key(sort_counting_functions))
+	visited_choice_list = sorted(visited_choice_list, key=functools.cmp_to_key(sort_counting_functions))
+	safe_choice_list = sorted(safe_choice_list, key=functools.cmp_to_key(sort_counting_functions))
 	
+	if len(preferred_visited_choice_list) > 0:
+		dst_state_vector, output_choice = preferred_visited_choice_list[0]
+	elif len(visited_choice_list) > 0:
+		dst_state_vector, output_choice = visited_choice_list[0]
+	else:
+		dst_state_vector, output_choice = safe_choice_list[0]
 	print("".join(["-"]*100))
 	print("Action after sequence " 
 		+ min_word
 		+ '.' + bdd_to_str(i)
 		+ " is chosen as: " + bdd_to_str(output_choice))
 	
-	print_choice_list(best_choice_list, "Best actions: ")
 	print_choice_list(safe_choice_list, "Safe actions: ")
+	print_choice_list(preferred_visited_choice_list,
+							"Actions that lead to a 'pre-machine' visited state: ")
 	print_choice_list(visited_choice_list,
 							"Actions that lead to a visited state: ")
 	print_choice_list(unsafe_choice_list, "Unsafe actions: ")

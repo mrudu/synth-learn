@@ -3,6 +3,7 @@ from aalpy.automata import MealyState, MealyMachine
 import spot
 import buddy
 from mealyMachineBuilder import isCrossProductCompatible
+from functools import cmp_to_key
 
 def bdd_to_str(bdd_arg):
 	return str(spot.bdd_to_formula(bdd_arg))
@@ -29,20 +30,30 @@ def build_prefix_tree(words):
 	mealyTree = MealyMachine(root, list_nodes)
 	return mealyTree
 
+def distance_nodes(node_1, node_2):
+	return sum(list(abs(node_1.counting_function[i] - node_2.counting_function[i]) \
+		for i in range(len(node_1.counting_function))))*-1
+
 def get_compatible_node(mealy_machine, exclude=[]):
 	states = mealy_machine.states
+	pair_nodes = []
 	for s1 in states:
 		for s2 in states:
 			if s1 == s2:
 				continue
+			if s1.state_id == s2.state_id:
+				continue
 			if is_excluded([s1, s2], exclude):
+				continue
+			if [s2, s1] in pair_nodes:
 				continue
 			m1 = MealyMachine(s1, states)
 			m2 = MealyMachine(s2, states)
 			isComp, cex = isCrossProductCompatible(m1, m2)
 			if isComp:
-				return [s1, s2]
-	return None
+				pair_nodes.append([s1, s2])
+	pair_nodes = sorted(pair_nodes, key=lambda x: distance_nodes(x[0], x[1]))
+	return pair_nodes
 
 def is_excluded(pair, exclude_pairs):
 	pair1 = '{}.{}'.format(pair[0].state_id, pair[1].state_id)
