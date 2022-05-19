@@ -1,11 +1,8 @@
 {
   "assumptions": ["true"],
-  "guarantees": ["G(p->Fgp)", "G(q->Fgq)", "G(!(gp & gq))"], 
+  "guarantees": ["G(p->Fgp)", "G(q->Fgq)"], 
   "input_atomic_propositions": ["p", "q"], 
-  "output_atomic_propositions": ["gp", "gq"], 
-  "traces": ["!p & !q.gp & !gq", 
-    "p & !q.gp & !gq", "!p & q.gp & !gq", 
-    "p & q.gp & !gq", 
-    "!p & !q.gp & !gq.!p & !q.!gp & gq", 
-    "p & !q.gp & !gq.p & !q.!gp & gq"]
+  "output_atomic_propositions": ["gp", "gq"],
+  "target": "ArbitersTwoProcess/example4.dot",
+  "traces": []
 }
