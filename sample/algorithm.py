@@ -2,11 +2,27 @@ from aalpy.utils import visualize_automaton, load_automaton_from_file
 
 from prefixTreeBuilder import *
 from mealyMachineBuilder import * 
-from completeAlgorithm import *
+from completeAlgo import *
 
 import copy
 import json
+import logging
 
+logger = logging.getLogger("algo-logger")
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 file_name = input("Enter name of json_file:")
 
 def check_to_continue():
@@ -16,14 +32,19 @@ def check_to_continue():
 def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, file_name, target, k = 2):
 	### STEP 1 ###
 	# Build Prefix Tree Mealy Machine
+	logger.debug("Building Prefix Tree Mealy Machine...")
 	mealy_machine = build_prefix_tree(traces)
+	logger.debug("Prefix Tree Mealy Machine built")
 
 	# Check if K is appropriate
+	logger.debug("Checking if K is appropriate...")
+
+	logger.debug("Checking if K is appropriate for LTL")
 	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 	count = 0
 	while UCBWrapper.ucb is None:
-		print("LTL Specification is unsafe for k=" + str(k))
+		logger.debug("LTL Specification is unsafe for k=" + str(k))
 		count += 1
 		if count == 10:
 			if check_to_continue():
@@ -33,18 +54,19 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 		k = k + 1
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 	
-	print("LTL Specification is safe for k=" + str(k))
+	logger.info("LTL Specification is safe for k=" + str(k))
 	
 	count = 0
 	# Check if K is appropriate for traces
+	logger.debug("Checking if K is appropriate for traces")
 	while k_unsafe:
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if checkCFSafety(mealy_machine, UCBWrapper):
-			print("Traces is safe for k=" + str(k))
+			logger.info("Traces is safe for k=" + str(k))
 			k_unsafe = False
 			break
 		k = k + 1
-		print("Traces is unsafe for k=" + str(k))
+		logger.debug("Traces is unsafe for k=" + str(k))
 		count += 1
 		if count == 10:
 			if check_to_continue():
@@ -54,19 +76,21 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 
 	# Check if K is appropriate for target
+	logger.debug("Checking if K is appropriate for target machine")
 	target_machine = None
 	if len(target) > 0:
+		logger.debug("Checking if K is appropriate for target machine")
 		target_machine = load_automaton_from_file("examples/" + target, automaton_type="mealy")
 		k_unsafe = True
 		count = 0
 		while k_unsafe:
 			initialize_counting_function(target_machine, UCBWrapper)
 			if checkCFSafety(target_machine, UCBWrapper):
-				print('Target is safe for k=' + str(k))
+				logger.info('Target is safe for k=' + str(k))
 				k_unsafe = False
 				break
 			k = k + 1
-			print('Target is unsafe for k=' + str(k))
+			logger.debug('Target is unsafe for k=' + str(k))
 			count += 1
 			if count == 10:
 				if check_to_continue():
@@ -75,8 +99,10 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 					return None
 			UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 
+	logger.debug("Chosen appropriate K.")
 	### STEP 2 ###
 	# Merge compatible nodes
+	logger.debug("Merging compatible nodes in prefix tree...")
 	pairs = get_compatible_node(mealy_machine)
 	exclude_pairs = []
 	count = 1
@@ -98,15 +124,16 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	# Mark nodes in "pre-machine"
 	mark_nodes(mealy_machine)
 
+	logger.debug("Pre-machine complete.")
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
 	if target_machine is not None:
 		isComp, cex = isCrossProductCompatible(target_machine, mealy_machine)
 		if not isComp:
-			print('Counter example: ' + ".".join(cex))
+			logger.warning('Counter example: ' + ".".join(cex))
 			traces.append(cex)
-			print("Traces: "+ str(traces))
+			logger.debug("Traces: "+ str(traces))
 			return parse_json(file_name, traces)
 		else:
 			print("Final machine required traces: " + str(traces))
@@ -121,6 +148,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 				file_type="pdf"
 			)
 	else:
+		print("No target machine. Saving dot file...")
 		visualize_automaton(
 			mealy_machine,
 			path="examples/" + file_name,
