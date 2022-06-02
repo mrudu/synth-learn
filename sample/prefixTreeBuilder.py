@@ -11,6 +11,12 @@ def bdd_to_str(bdd_arg):
 def str_to_bdd(bdd_str, ucb):
 	return spot.formula_to_bdd(bdd_str, ucb.get_dict(), None)
 
+def sort_trace_function(trace, ordered_inputs):
+	input_filtered_trace = list(filter(
+		lambda proposition: proposition in ordered_inputs, trace))
+	return ''.join(map(lambda input_proposition: str(
+		ordered_inputs.index(input_proposition)),input_filtered_trace))
+
 def build_prefix_tree(words):
 	root = MealyState('()')
 	list_nodes = [root]

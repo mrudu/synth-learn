@@ -7,6 +7,7 @@ from completeAlgo import *
 import copy
 import json
 import logging
+import spot
 
 logger = logging.getLogger("algo-logger")
 logger.setLevel(logging.DEBUG)
@@ -31,10 +32,6 @@ def check_to_continue():
 
 def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, file_name, target, k = 2):
 	### STEP 1 ###
-	# Build Prefix Tree Mealy Machine
-	logger.debug("Building Prefix Tree Mealy Machine...")
-	mealy_machine = build_prefix_tree(traces)
-	logger.debug("Prefix Tree Mealy Machine built")
 
 	# Check if K is appropriate
 	logger.debug("Checking if K is appropriate...")
@@ -55,6 +52,13 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
 	
 	logger.info("LTL Specification is safe for k=" + str(k))
+
+	# Build Prefix Tree Mealy Machine
+	logger.debug("Building Prefix Tree Mealy Machine...")
+	ordered_inputs = list(map(lambda prop: str(spot.bdd_to_formula(prop)), UCBWrapper.bdd_inputs))
+	traces = sorted(traces, key=lambda trace: sort_trace_function(trace, ordered_inputs))
+	mealy_machine = build_prefix_tree(traces)
+	logger.debug("Prefix Tree Mealy Machine built")
 	
 	count = 0
 	# Check if K is appropriate for traces
