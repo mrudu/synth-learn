@@ -2,6 +2,7 @@ import spot
 import buddy
 import subprocess
 import math
+from utilities import contains
 
 class UCB(object):
 	"""docstring for UCB"""
@@ -131,13 +132,5 @@ class UCB(object):
 	def is_safe(self, state_vector):
 		safe = False
 		for antichain_vector in self.antichain_heads:
-			safe = safe or self.contains(antichain_vector, state_vector)
+			safe = safe or contains(state_vector, antichain_vector)
 		return safe
-
-	def contains(self, vector_1, vector_2):
-		if vector_1 == None or vector_2 == None:
-			return False
-		for i in range(self.num_states):
-			if vector_1[i] < vector_2[i]:
-				return False
-		return True

@@ -1,15 +1,7 @@
 from UCBBuilder import UCB
 from aalpy.automata import MealyState, MealyMachine
-import spot
-import buddy
 from mealyMachineBuilder import isCrossProductCompatible
-from functools import cmp_to_key
-
-def bdd_to_str(bdd_arg):
-	return str(spot.bdd_to_formula(bdd_arg))
-
-def str_to_bdd(bdd_str, ucb):
-	return spot.formula_to_bdd(bdd_str, ucb.get_dict(), None)
+from utilities import *
 
 def sort_trace_function(trace, ordered_inputs):
 	input_filtered_trace = list(filter(
@@ -60,12 +52,6 @@ def get_compatible_node(mealy_machine, exclude=[]):
 				pair_nodes.append([s1, s2])
 	pair_nodes = sorted(pair_nodes, key=lambda x: distance_nodes(x[0], x[1]))
 	return pair_nodes
-
-def is_excluded(pair, exclude_pairs):
-	pair1 = '{}.{}'.format(pair[0].state_id, pair[1].state_id)
-	pair2 = '{}.{}'.format(pair[1].state_id, pair[0].state_id)
-	exclude_pairs = list(map(lambda x: '{}.{}'.format(x[0].state_id, x[1].state_id), exclude_pairs))
-	return pair1 in exclude_pairs or pair2 in exclude_pairs
 
 def initialize_counting_function(mealy, UCBWrapper):
 	for state in mealy.states:

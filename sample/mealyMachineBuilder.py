@@ -1,6 +1,6 @@
 from aalpy.automata import MealyState, MealyMachine
-import spot
 from aalpy.utils import visualize_automaton
+from utilities import str_to_bdd, contains, lowestUpperBound
 
 def get_state_from_id(state_id, state_list):
 	for state in state_list:
@@ -12,15 +12,6 @@ def get_state_from_id(state_id, state_list):
 		if stateMatches:
 			return state
 	return None
-
-def lowestUpperBound(vector_1, vector_2):
-	vector = []
-	for i in range(len(vector_1)):
-		if vector_1[i] > vector_2[i]:
-			vector.append(vector_1[i])
-		else:
-			vector.append(vector_2[i])
-	return vector
 
 def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 	# Building Cross Product
@@ -82,15 +73,14 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 		f1 = state.counting_function
 		f2 = target_state.counting_function
 
-		i_bdd = spot.formula_to_bdd(i, UCBWrapper.ucb.get_dict(), None)
-		o_bdd = spot.formula_to_bdd(state.output_fun[i], 
-				UCBWrapper.ucb.get_dict(), None)
+		i_bdd = str_to_bdd(i, UCBWrapper.ucb)
+		o_bdd = str_to_bdd(state.output_fun[i], UCBWrapper.ucb)
 		
 		f_ = lowestUpperBound(UCBWrapper.get_transition_state(f1, 
 			i_bdd & o_bdd), f2)
 		if not UCBWrapper.is_safe(f_):
 			return False
-		if UCBWrapper.contains(f_, f2) and f_ != f2:
+		if contains(f2, f_) and f_ != f2:
 			target_state.counting_function = f_;
 			for j in target_state.transitions.keys():
 				edges_to_visit.append([target_state, j])

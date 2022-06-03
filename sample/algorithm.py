@@ -7,7 +7,8 @@ from completeAlgo import *
 import copy
 import json
 import logging
-import spot
+
+from utilities import *
 
 logger = logging.getLogger("algo-logger")
 logger.setLevel(logging.DEBUG)
@@ -55,7 +56,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	# Build Prefix Tree Mealy Machine
 	logger.debug("Building Prefix Tree Mealy Machine...")
-	ordered_inputs = list(map(lambda prop: str(spot.bdd_to_formula(prop)), UCBWrapper.bdd_inputs))
+	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), UCBWrapper.bdd_inputs))
 	traces = sorted(traces, key=lambda trace: sort_trace_function(trace, ordered_inputs))
 	mealy_machine = build_prefix_tree(traces)
 	logger.debug("Prefix Tree Mealy Machine built")
@@ -138,7 +139,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			logger.warning('Counter example: ' + ".".join(cex))
 			traces.append(cex)
 			logger.debug("Traces: "+ str(traces))
-			return parse_json(file_name, traces)
+			return parse_json(file_name, traces, k)
 		else:
 			print("Final machine required traces: " + str(traces))
 			visualize_automaton(
@@ -184,7 +185,7 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 		merged = True
 	return [mealy_machine, exclude_pairs, merged]
 
-def parse_json(file_name, new_traces = []):
+def parse_json(file_name, new_traces = [], k=1):
 	with open('examples/' + file_name + ".json", "r") as read_file:
 	    data = json.load(read_file)
 	LTL_formula = "((" + ') & ('.join(data['assumptions']) + "))->((" + ') & ('.join(data['guarantees']) + "))"
@@ -193,6 +194,6 @@ def parse_json(file_name, new_traces = []):
 		traces = list(map(lambda x: x.split('.'), traces))
 	else:
 		traces = copy.deepcopy(new_traces)
-	build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], 1)
+	build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
 
 parse_json(file_name)
