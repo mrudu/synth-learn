@@ -2,7 +2,7 @@ import spot
 import buddy
 import subprocess
 import math
-from utilities import contains
+from LTLsynthesis.utilities import contains
 
 class UCB(object):
 	"""docstring for UCB"""

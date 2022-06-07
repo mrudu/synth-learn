@@ -1,5 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from utilities import *
+from LTLsynthesis.utilities import *
 import functools
 
 def sort_trace_function(trace, ordered_inputs):

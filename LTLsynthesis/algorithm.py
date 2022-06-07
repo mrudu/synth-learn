@@ -1,31 +1,13 @@
 from aalpy.utils import visualize_automaton, load_automaton_from_file
-
-from prefixTreeBuilder import *
-from mealyMachineBuilder import * 
-from completeAlgo import *
-
-import copy
-import json
 import logging
-
-from utilities import *
+from LTLsynthesis.prefixTreeBuilder import build_prefix_tree
+from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible
+from LTLsynthesis.completeAlgo import complete_mealy_machine
+from LTLsynthesis.utilities import *
+from UCBBuilder import UCB
 
 logger = logging.getLogger("algo-logger")
-logger.setLevel(logging.DEBUG)
 
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
-file_name = input("Enter name of json_file:")
 
 def check_to_continue():
 	answer = input("Are you sure you wish to continue? (y/Y for yes): ")
@@ -171,16 +153,3 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 def mark_nodes(mealy_machine):
 	for state in mealy_machine.states:
 		state.special_node = True
-
-def parse_json(file_name, new_traces = [], k=1):
-	with open('examples/' + file_name + ".json", "r") as read_file:
-	    data = json.load(read_file)
-	LTL_formula = "((" + ') & ('.join(data['assumptions']) + "))->((" + ') & ('.join(data['guarantees']) + "))"
-	if len(new_traces) == 0:
-		traces = data['traces']
-		traces = list(map(lambda x: x.split('.'), traces))
-	else:
-		traces = copy.deepcopy(new_traces)
-	build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
-
-parse_json(file_name)

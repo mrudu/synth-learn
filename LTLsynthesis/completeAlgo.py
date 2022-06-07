@@ -1,8 +1,8 @@
 from aalpy.automata import MealyState, MealyMachine
-from prefixTreeBuilder import *
-from mealyMachineBuilder import checkCFSafety
+from LTLsynthesis.prefixTreeBuilder import *
+from LTLsynthesis.mealyMachineBuilder import checkCFSafety
 import functools
-from utilities import sort_counting_functions, bdd_to_str
+from LTLsynthesis.utilities import sort_counting_functions, bdd_to_str
 
 import logging
 
