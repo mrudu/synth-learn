@@ -59,6 +59,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), UCBWrapper.bdd_inputs))
 	traces = sorted(traces, key=lambda trace: sort_trace_function(trace, ordered_inputs))
 	mealy_machine = build_prefix_tree(traces)
+
 	logger.debug("Prefix Tree Mealy Machine built")
 	
 	count = 0
@@ -108,7 +109,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	### STEP 2 ###
 	# Merge compatible nodes
 	logger.debug("Merging compatible nodes in prefix tree...")
-	pairs = get_compatible_node(mealy_machine)
+	pairs = get_compatible_nodes(mealy_machine)
 	exclude_pairs = []
 	count = 1
 	while len(pairs) > 0:
@@ -118,7 +119,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			continue
 		mealy_machine, exclude_pairs, isMerged = merge_compatible_nodes(
 			pair, exclude_pairs, mealy_machine, UCBWrapper)
-		pairs = get_compatible_node(mealy_machine)
+		pairs = get_compatible_nodes(mealy_machine)
 		if not isMerged:
 			pairs = pairs[count:]
 			count += 1
@@ -170,20 +171,6 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 def mark_nodes(mealy_machine):
 	for state in mealy_machine.states:
 		state.special_node = True
-
-def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
-	UCBWrapper):
-	old_mealy_machine = copy.deepcopy(mealy_machine)
-	merged = False
-	mealy_machine = mergeAndPropogate(pair[0], pair[1], mealy_machine)
-	initialize_counting_function(mealy_machine, UCBWrapper)
-	if not checkCFSafety(mealy_machine, UCBWrapper):
-		mealy_machine = old_mealy_machine
-		exclude_pairs.append(pair)
-	else:
-		exclude_pairs = []
-		merged = True
-	return [mealy_machine, exclude_pairs, merged]
 
 def parse_json(file_name, new_traces = [], k=1):
 	with open('examples/' + file_name + ".json", "r") as read_file:

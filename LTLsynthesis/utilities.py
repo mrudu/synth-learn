@@ -1,5 +1,16 @@
 import spot
 
+def get_state_from_id(state_id, state_list):
+	for state in state_list:
+		stateMatches = True
+		for i in range(len(state_id)):
+			if state.state_id[i] != state_id[i]:
+				stateMatches = False
+				break
+		if stateMatches:
+			return state
+	return None
+
 def bdd_to_str(bdd_arg):
 	return str(spot.bdd_to_formula(bdd_arg))
 

@@ -1,17 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from aalpy.utils import visualize_automaton
-from utilities import str_to_bdd, contains, lowestUpperBound
-
-def get_state_from_id(state_id, state_list):
-	for state in state_list:
-		stateMatches = True
-		for i in range(len(state_id)):
-			if state.state_id[i] != state_id[i]:
-				stateMatches = False
-				break
-		if stateMatches:
-			return state
-	return None
+from utilities import str_to_bdd, contains, lowestUpperBound, get_state_from_id
 
 def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 	# Building Cross Product
@@ -55,36 +43,41 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 					return [False, transition_state.cex + transition_state.expected_trace]
 	return [True, None]
 
-def checkCFSafety(mealy: MealyMachine, UCBWrapper):
-	# Checking CF Safety of the new Mealy Machine
-	if not UCBWrapper.is_safe(mealy.initial_state.counting_function):
-		return False
-	
-	edges_to_visit = []
+def get_compatible_nodes(mealy_machine, exclude=[]):
+	states = mealy_machine.states
+	pair_nodes = []
+	for s1 in states:
+		for s2 in states:
+			if s1 == s2:
+				continue
+			if s1.state_id == s2.state_id:
+				continue
+			if is_excluded([s1, s2], exclude):
+				continue
+			if [s2, s1] in pair_nodes:
+				continue
+			m1 = MealyMachine(s1, states)
+			m2 = MealyMachine(s2, states)
+			isComp, cex = isCrossProductCompatible(m1, m2)
+			if isComp:
+				pair_nodes.append([s1, s2])
+	pair_nodes = sorted(pair_nodes, key=functools.cmp_to_key(sort_min_cf))
+	# pair_nodes = sorted(pair_nodes, key=lambda x: distance_nodes(x[0], x[1]))
+	return pair_nodes
 
-	for i in mealy.initial_state.transitions.keys():
-		edges_to_visit.append([mealy.initial_state, i])
-	
-	count = 0
-	while len(edges_to_visit) > 0:
-		state, i = edges_to_visit[0]
-		target_state = state.transitions[i]
-		edges_to_visit = edges_to_visit[1:]
-		f1 = state.counting_function
-		f2 = target_state.counting_function
-
-		i_bdd = str_to_bdd(i, UCBWrapper.ucb)
-		o_bdd = str_to_bdd(state.output_fun[i], UCBWrapper.ucb)
-		
-		f_ = lowestUpperBound(UCBWrapper.get_transition_state(f1, 
-			i_bdd & o_bdd), f2)
-		if not UCBWrapper.is_safe(f_):
-			return False
-		if contains(f2, f_) and f_ != f2:
-			target_state.counting_function = f_;
-			for j in target_state.transitions.keys():
-				edges_to_visit.append([target_state, j])
-	return True
+def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
+	UCBWrapper):
+	old_mealy_machine = copy.deepcopy(mealy_machine)
+	merged = False
+	mealy_machine = mergeAndPropogate(pair[0], pair[1], mealy_machine)
+	initialize_counting_function(mealy_machine, UCBWrapper)
+	if not checkCFSafety(mealy_machine, UCBWrapper):
+		mealy_machine = old_mealy_machine
+		exclude_pairs.append(pair)
+	else:
+		exclude_pairs = []
+		merged = True
+	return [mealy_machine, exclude_pairs, merged]
 
 def mergeAndPropogate(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):
 	propogate_queue = [[s1, s2]]
