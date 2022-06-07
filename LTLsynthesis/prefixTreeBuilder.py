@@ -1,6 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
 from LTLsynthesis.utilities import *
-import functools
 
 def sort_trace_function(trace, ordered_inputs):
 	input_filtered_trace = list(filter(
@@ -42,37 +41,6 @@ def sort_min_cf(node_pair_1, node_pair_2):
 		return -1
 	else:
 		return 1
-
-def checkCFSafety(mealy: MealyMachine, UCBWrapper):
-	# Checking CF Safety of the new Mealy Machine
-	if not UCBWrapper.is_safe(mealy.initial_state.counting_function):
-		return False
-	
-	edges_to_visit = []
-
-	for i in mealy.initial_state.transitions.keys():
-		edges_to_visit.append([mealy.initial_state, i])
-	
-	count = 0
-	while len(edges_to_visit) > 0:
-		state, i = edges_to_visit[0]
-		target_state = state.transitions[i]
-		edges_to_visit = edges_to_visit[1:]
-		f1 = state.counting_function
-		f2 = target_state.counting_function
-
-		i_bdd = str_to_bdd(i, UCBWrapper.ucb)
-		o_bdd = str_to_bdd(state.output_fun[i], UCBWrapper.ucb)
-		
-		f_ = lowestUpperBound(UCBWrapper.get_transition_state(f1, 
-			i_bdd & o_bdd), f2)
-		if not UCBWrapper.is_safe(f_):
-			return False
-		if contains(f2, f_) and f_ != f2:
-			target_state.counting_function = f_;
-			for j in target_state.transitions.keys():
-				edges_to_visit.append([target_state, j])
-	return True
 
 def initialize_counting_function(mealy, UCBWrapper):
 	for state in mealy.states:

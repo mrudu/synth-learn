@@ -1,9 +1,6 @@
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.prefixTreeBuilder import *
-from LTLsynthesis.mealyMachineBuilder import checkCFSafety
 import functools
-from LTLsynthesis.utilities import sort_counting_functions, bdd_to_str
-
+from LTLsynthesis.utilities import *
 import logging
 
 logger = logging.getLogger('algo-logger')

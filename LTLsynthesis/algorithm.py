@@ -1,10 +1,10 @@
 from aalpy.utils import visualize_automaton, load_automaton_from_file
 import logging
-from LTLsynthesis.prefixTreeBuilder import build_prefix_tree
-from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible
+from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, sort_trace_function, checkCFSafety
+from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible, merge_compatible_nodes
 from LTLsynthesis.completeAlgo import complete_mealy_machine
 from LTLsynthesis.utilities import *
-from UCBBuilder import UCB
+from LTLsynthesis.UCBBuilder import UCB
 
 logger = logging.getLogger("algo-logger")
 

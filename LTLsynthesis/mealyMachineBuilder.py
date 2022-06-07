@@ -1,6 +1,7 @@
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.utilities import str_to_bdd, contains, lowestUpperBound, get_state_from_id
-import copy
+from LTLsynthesis.utilities import *
+from LTLsynthesis.prefixTreeBuilder import *
+import copy, functools
 
 def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 	# Building Cross Product
