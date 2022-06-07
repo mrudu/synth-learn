@@ -1,0 +1,19 @@
+digraph "examples/ArbitersTwoProcess/example3" {
+"() LEVEL" [label="() LEVEL:0"];
+"() LEVEL" [label="() LEVEL:0(p & q.!gp & gq)"];
+"() LEVEL" [label="() LEVEL:0(p & q.gp & !gq)"];
+"() LEVEL:0" -> "() LEVEL:0"  [label="!p & !q/!gp & !gq"];
+"() LEVEL:0" -> "() LEVEL:0"  [label="!p & q/!gp & gq"];
+"() LEVEL:0" -> "() LEVEL:0"  [label="p & !q/gp & !gq"];
+"() LEVEL:0" -> "() LEVEL:0(p & q.gp & !gq)"  [label="p & q/gp & !gq"];
+"() LEVEL:0(p & q.!gp & gq)" -> "() LEVEL:0"  [label="!p & !q/gp & !gq"];
+"() LEVEL:0(p & q.!gp & gq)" -> "() LEVEL:0(p & q.gp & !gq)"  [label="!p & q/gp & !gq"];
+"() LEVEL:0(p & q.!gp & gq)" -> "() LEVEL:0"  [label="p & !q/gp & !gq"];
+"() LEVEL:0(p & q.!gp & gq)" -> "() LEVEL:0(p & q.gp & !gq)"  [label="p & q/gp & !gq"];
+"() LEVEL:0(p & q.gp & !gq)" -> "() LEVEL:0"  [label="!p & !q/!gp & gq"];
+"() LEVEL:0(p & q.gp & !gq)" -> "() LEVEL:0"  [label="!p & q/!gp & gq"];
+"() LEVEL:0(p & q.gp & !gq)" -> "() LEVEL:0(p & q.!gp & gq)"  [label="p & !q/!gp & gq"];
+"() LEVEL:0(p & q.gp & !gq)" -> "() LEVEL:0(p & q.!gp & gq)"  [label="p & q/!gp & gq"];
+__start0 [label="", shape=none];
+__start0 -> "() LEVEL:0"  [label=""];
+}
