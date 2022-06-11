@@ -8,7 +8,7 @@ def sort_trace_function(trace, ordered_inputs):
 		ordered_inputs.index(input_proposition)+1),input_filtered_trace)))
 
 def build_prefix_tree(words):
-	root = MealyState('() LEVEL:0')
+	root = MealyState('()')
 	root.level = 0
 	list_nodes = [root]
 	for word in words:
@@ -18,7 +18,7 @@ def build_prefix_tree(words):
 				current_node = current_node.transitions[word[i]]
 			else:
 				new_node = MealyState(current_node.state_id + \
-					"({}.{}) LEVEL:{}".format(word[i],word[i+1], len(list_nodes)))
+					"({}.{})".format(word[i],word[i+1]))
 				current_node.transitions[word[i]] = new_node
 				current_node.output_fun[word[i]] = word[i+1]
 				current_node = new_node
