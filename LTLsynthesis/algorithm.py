@@ -122,9 +122,16 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			logger.warning('Counter example: ' + ".".join(cex))
 			traces.append(cex)
 			logger.debug("Traces: "+ str(traces))
-			return parse_json(file_name, traces, k)
+
+			return build_mealy(
+				LTL_formula, 
+				input_atomic_propositions, 
+				output_atomic_propositions, traces, 
+				file_name, target, k)
 		else:
+			print(''.join(['-']*20))
 			print("Final machine required traces: " + str(traces))
+			print("Number of traces required: " + str(len(traces)))
 			visualize_automaton(
 				mealy_machine,
 				path="examples/" + file_name + 'mealy',

@@ -1,4 +1,5 @@
 from LTLsynthesis.algorithm import build_mealy
+from LTLsynthesis.LStarLearning import learning
 import logging
 import json
 
@@ -28,6 +29,7 @@ def parse_json(file_name, new_traces = [], k=1):
 		traces = list(map(lambda x: x.split('.'), traces))
 	else:
 		traces = copy.deepcopy(new_traces)
-	build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
+	m = build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
+	learning(m)
 
 parse_json(file_name)
