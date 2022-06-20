@@ -19,5 +19,5 @@
 	"input_atomic_propositions": ["brake"],
 	"output_atomic_propositions": ["assist", "brakeregenerate", "idle"],
 	"traces" : [],
-	"target" : ""
+	"target" : "ElectricBike/TaskB4.dot"
 }
