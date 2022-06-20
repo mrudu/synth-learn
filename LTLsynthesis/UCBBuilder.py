@@ -3,6 +3,9 @@ import buddy
 import subprocess
 import math
 from LTLsynthesis.utilities import contains
+import logging
+
+logger = logging.getLogger('algo-logger')
 
 class UCB(object):
 	"""docstring for UCB"""
@@ -43,6 +46,7 @@ class UCB(object):
 				self.k)
 
 			command = "multipass exec foobar -- " + command
+			logger.debug(command)
 			op = subprocess.run(command, shell=True, capture_output=True)
 			captureUCB = False
 			captureStateReassignment = False

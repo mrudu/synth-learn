@@ -96,16 +96,23 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	count = 1
 	while len(pairs) > 0:
 		pair = pairs[0]
+		logger.debug("Attempting to merge nodes: " + pair[0].state_id + ", " + pair[1].state_id)
 		if is_excluded(pair, exclude_pairs):
+			logger.debug("Pair excluded. Moving on...")
 			pairs = pairs[1:]
 			continue
 		mealy_machine, exclude_pairs, isMerged = merge_compatible_nodes(
 			pair, exclude_pairs, mealy_machine, UCBWrapper)
 		pairs = get_compatible_nodes(mealy_machine)
 		if not isMerged:
+			logger.debug("Merge unsuccessful. Moving on...")
 			pairs = pairs[count:]
 			count += 1
 		else:
+			logger.debug("Merge successful.")
+			logger.debug("Next in line:")
+			for pair in pairs:
+				logger.debug("[{}, {}]".format(pair[0].state_id, pair[1].state_id))
 			count = 1
 
 	### STEP 2.5 ###
