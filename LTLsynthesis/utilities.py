@@ -1,5 +1,7 @@
-import spot
+import spot, logging
 from aalpy.automata import MealyState, MealyMachine
+
+logger = logging.getLogger('algo-logger')
 
 def initialize_counting_function(mealy, UCBWrapper):
 	for state in mealy.states:
@@ -21,20 +23,29 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 		state, i = edges_to_visit[0]
 		target_state = state.transitions[i]
 		edges_to_visit = edges_to_visit[1:]
+		logger.debug("Exploring edge: {} + {}/{} -> {}".format(state.state_id, i, state.output_fun[i], target_state.state_id))
 		f1 = state.counting_function
 		f2 = target_state.counting_function
+
+
+		logger.debug("Origin state CF: " + str(f1))
+		logger.debug("Transition state CF: " + str(f2))
 
 		i_bdd = str_to_bdd(i, UCBWrapper.ucb)
 		o_bdd = str_to_bdd(state.output_fun[i], UCBWrapper.ucb)
 		
 		f_ = lowestUpperBound(UCBWrapper.get_transition_state(f1, 
 			i_bdd & o_bdd), f2)
+		logger.debug("Lowest Upper Bound: " + str(f_))
 		if not UCBWrapper.is_safe(f_):
 			return False
 		if contains(f2, f_) and f_ != f2:
+			logger.debug("Target state reset")
 			target_state.counting_function = f_;
 			for j in target_state.transitions.keys():
 				edges_to_visit.append([target_state, j])
+		else:
+			logger.debug("Target state remains")
 	return True
 
 def get_state_from_id(state_id, state_list):
