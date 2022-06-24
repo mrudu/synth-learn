@@ -1,23 +1,23 @@
 {
-	"assumptions": [
-	"G((!brake & Xbrake) -> (XXbrake & XXXbrake))", 
-	"G((brake & X!brake) -> (XX!brake & XXX!brake))"
-	], 
-	"guarantees": [
-		"G(!(assist & brakeregenerate))", 
-		"G(!(assist & idle))", "G(!(idle & brakeregenerate))", 
-		"G(idle | brakeregenerate | assist)", 
-		"G(assist -> !(X(brakeregenerate)))",
-		"G(brakeregenerate -> !(X(assist)))",
-		"G(brake -> F(brakeregenerate))",
-		"G((brake & brakeregenerate)->(brakeregenerate W !brake))",
-		"G(!brake -> F(assist))",
-		"G((!brake & assist)->(assist W brake))",
-		"G(brake -> (brakeregenerate | X(brakeregenerate)))",
-		"G(!brake -> (assist | X(assist)))"
+	"assumptions":[
+	"G((!b & X(b))->(X(X(b))))",
+	"G((b & X(!b))->(X(X(!b))))"
 	],
-	"input_atomic_propositions": ["brake"],
-	"output_atomic_propositions": ["assist", "brakeregenerate", "idle"],
-	"traces" : [],
-	"target" : "ElectricBike/TaskB4.dot"
+	"guarantees":[
+		"G(!(a & bg))",
+		"G(!(a & i))","G(!(i & bg))",
+		"G(i | bg | a)",
+		"G(a->!(X(bg)))",
+		"G(bg->!(X(a)))",
+		"G(b->F(bg))",
+		"G((b & bg)->(bg W !b))",
+		"G(!b->F(a))",
+		"G((!b & a)->(a W b))",
+		"G(b->(bg | X(bg)))",
+		"G(!b->(a | X(a)))"
+	],
+	"input_atomic_propositions":["b"],
+	"output_atomic_propositions":["a", "bg", "i"],
+	"traces":[],
+	"target":""
 }
