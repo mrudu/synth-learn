@@ -11,6 +11,14 @@ def check_state_subsumed(state, current_state, i_bdd, UCBWrapper):
 		cf = UCBWrapper.get_transition_state(current_state.counting_function, i_bdd & o_bdd)
 		o_str = bdd_to_str(o_bdd)
 		if contains(cf, state.counting_function):
+			logger.debug("CF subsumed by node..")
+			logger.debug("Counting function of transition: " + str(cf))
+			logger.debug("Counting function of next state: " + str(state.counting_function))
+			logger.info("Creating edge: {} + {}/{} -> {}".format(
+				current_state.state_id,
+				i_str,
+				o_str,
+				state.state_id))
 			current_state.transitions[i_str] = state
 			current_state.output_fun[i_str] = o_str
 			return True
@@ -19,11 +27,23 @@ def check_state_subsumed(state, current_state, i_bdd, UCBWrapper):
 def check_state_mergeable(state, current_state, i_bdd, mealy_machine, UCBWrapper):
 	i_str = bdd_to_str(i_bdd)
 	for o_bdd in UCBWrapper.bdd_outputs:
+		o_str = bdd_to_str(o_bdd)
 		current_state.transitions[i_str] = state
-		current_state.output_fun[i_str] = bdd_to_str(o_bdd)
+		current_state.output_fun[i_str] = o_str
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if checkCFSafety(mealy_machine, UCBWrapper):
+			cf = UCBWrapper.get_transition_state(current_state.counting_function, i_bdd & o_bdd)
+			logger.debug("Merging with node..")
+			logger.debug("Counting function of transition: " + str(cf))
+			logger.debug("Counting function of next state: " + str(state.counting_function))
+			logger.info("Creating edge: {} + {}/{} -> {}".format(
+				current_state.state_id,
+				i_str,
+				o_str,
+				state.state_id))
 			return True
+		del current_state.transitions[i_str]
+		del current_state.output_fun[i_str]
 	return False
 
 def sort_list(item_1, item_2):
@@ -71,9 +91,11 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 				continue
 			
 			mergeComplete = False
+			logger.debug("Counting function of origin state: " + str(current_state.counting_function))
+			newly_created_nodes = sorted(newly_created_nodes, key=functools.cmp_to_key(sort_nodes))
 
 			# Checking if there exists output where cf is subsumed by premachine state
-			logger.info("Checking if there exists output where cf is subsumed by premachine state")
+			logger.info("Checking if there exists output where cf is subsumed by premachine/newly created state state")
 			for state in (premachine_nodes + newly_created_nodes):
 				if check_state_subsumed(state, current_state, i_bdd, UCBWrapper):
 					next_state = state
@@ -94,10 +116,16 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 					mergeComplete = True
 					break
 
-			if mergeComplete and (next_state not in visited_states):
-				state_queue.append(next_state)
-				visited_states.append(next_state)
+			if mergeComplete:
+				if (next_state not in visited_states):
+					state_queue.append(next_state)
+					visited_states.append(next_state)
 				continue
+
+			initialize_counting_function(mealy_machine, UCBWrapper)
+			if not checkCFSafety(mealy_machine, UCBWrapper):
+				logger.warning("This mealy machine is unsuitable")
+				return None
 
 			logger.info("Will have to create a new state")
 			cf_o_list = []
@@ -110,14 +138,22 @@ def complete_mealy_machine(mealy_machine, UCBWrapper):
 				o_bdd, cf = item
 				if not UCBWrapper.is_safe(cf):
 					continue
-				next_state = MealyState("{}({}.{})".format(current_state.state_id, i_str, bdd_to_str(o_bdd)))
+				o_str = bdd_to_str(o_bdd)
+				next_state = MealyState("{}({}.{})".format(current_state.state_id, i_str, o_str))
 				next_state.counting_function = cf
 				next_state.special_node = False
 				mealy_machine.states.append(next_state)
 				newly_created_nodes.append(next_state)
+				logger.info("Creating new state " + next_state.state_id)
+				logger.debug("Counting function of transition: " + str(cf))
+				logger.info("Creating edge: {} + {}/{} -> {}".format(
+					current_state.state_id,
+					i_str,
+					o_str,
+					next_state.state_id))
 				current_state.transitions[i_str] = next_state
-				current_state.output_fun[i_str] = bdd_to_str(o_bdd)
+				current_state.output_fun[i_str] = o_str
 				state_queue.append(next_state)
 				visited_states.append(next_state)
-				logger.info("Creating new state " + next_state.state_id)
+				break
 

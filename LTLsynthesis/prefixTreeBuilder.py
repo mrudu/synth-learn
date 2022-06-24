@@ -42,10 +42,5 @@ def sort_min_cf(node_pair_1, node_pair_2):
 	else:
 		return 1
 
-def initialize_counting_function(mealy, UCBWrapper):
-	for state in mealy.states:
-		state.counting_function = [-1]*UCBWrapper.num_states;
-	mealy.initial_state.counting_function[UCBWrapper.ucb.get_init_state_number()] = 0
-
 
 
