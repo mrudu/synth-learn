@@ -37,16 +37,15 @@ class UCB(object):
 		automata_lines = []
 		state_reassignment = []
 		init_state = 0
+		command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
+			src_file,
+			psi, 
+			",".join(inputs), 
+			",".join(outputs), 
+			self.k)
+		command = "multipass exec foobar -- " + command
+		logger.debug(command)
 		try:
-			command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
-				src_file,
-				psi, 
-				",".join(inputs), 
-				",".join(outputs), 
-				self.k)
-
-			command = "multipass exec foobar -- " + command
-			logger.debug(command)
 			op = subprocess.run(command, shell=True, capture_output=True)
 			captureUCB = False
 			captureStateReassignment = False
@@ -78,6 +77,7 @@ class UCB(object):
 				self.ucb = a
 			self.ucb.set_init_state(state_reassignment.index(init_state))
 		except Exception as e:
+			print(command)
 			print("Cannot execute command.")
 			print(e)
 			return False

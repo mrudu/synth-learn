@@ -90,7 +90,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	logger.debug("Chosen appropriate K.")
 	### STEP 2 ###
 	# Merge compatible nodes
-	logger.debug("Merging compatible nodes in prefix tree...")
+	logger.info("Merging compatible nodes in prefix tree...")
 	pairs = get_compatible_nodes(mealy_machine)
 	exclude_pairs = []
 	count = 1
