@@ -5,19 +5,5 @@
   "target": "ArbitersTwoProcess/learnmodel2.dot",
   "input_atomic_propositions": ["p", "q"], 
   "output_atomic_propositions": ["gp", "gq"], 
-  "traces": [
-    "!p & !q.!gp & !gq.!p & q.!gp & gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & q.!gp & gq.p & !q.!gp & !gq.p & !q.gp & !gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & q.!gp & gq.p & !q.!gp & !gq.!p & !q.gp & !gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.p & q.!gp & !gq.!p & !q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.p & !q.!gp & !gq.p & q.gp & !gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.p & !q.!gp & !gq.!p & q.gp & !gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.p & !q.!gp & !gq.p & !q.gp & !gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.p & !q.!gp & !gq.!p & !q.gp & !gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.!p & q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.!p & q.!gp & !gq.!p & q.!gp & gq.!p & !q.!gp & !gq.p & q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.!p & q.!gp & !gq.p & !q.!gp & gq",
-    "!p & !q.!gp & !gq.p & !q.gp & !gq.!p & q.!gp & !gq.!p & !q.!gp & gq.!p & !q.!gp & !gq.p & q.!gp & gq"
-  ]
+  "traces": []
 }

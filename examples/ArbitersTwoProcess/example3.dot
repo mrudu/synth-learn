@@ -1,5 +1,6 @@
 digraph "examples/ArbitersTwoProcess/example3" {
 "()" [label="()"];
+<<<<<<< Updated upstream
 "()(request_0 & request_1.!grant_0 & grant_1)" [label="()(request_0 & request_1.!grant_0 & grant_1)"];
 "()(request_0 & request_1.grant_0 & !grant_1)" [label="()(request_0 & request_1.grant_0 & !grant_1)"];
 "()" -> "()"  [label="!request_0 & !request_1/!grant_0 & !grant_1"];
@@ -14,6 +15,22 @@ digraph "examples/ArbitersTwoProcess/example3" {
 "()(request_0 & request_1.grant_0 & !grant_1)" -> "()"  [label="!request_0 & request_1/!grant_0 & grant_1"];
 "()(request_0 & request_1.grant_0 & !grant_1)" -> "()(request_0 & request_1.!grant_0 & grant_1)"  [label="request_0 & !request_1/!grant_0 & grant_1"];
 "()(request_0 & request_1.grant_0 & !grant_1)" -> "()(request_0 & request_1.!grant_0 & grant_1)"  [label="request_0 & request_1/!grant_0 & grant_1"];
+=======
+"()(p & q.gp & !gq)" [label="()(p & q.gp & !gq)"];
+"()(p & q.gp & !gq)(p & !q.!gp & gq)" [label="()(p & q.gp & !gq)(p & !q.!gp & gq)"];
+"()" -> "()"  [label="!p & !q/!gp & !gq"];
+"()" -> "()"  [label="!p & q/!gp & gq"];
+"()" -> "()"  [label="p & !q/gp & !gq"];
+"()" -> "()(p & q.gp & !gq)"  [label="p & q/gp & !gq"];
+"()(p & q.gp & !gq)" -> "()"  [label="!p & !q/!gp & gq"];
+"()(p & q.gp & !gq)" -> "()"  [label="!p & q/!gp & gq"];
+"()(p & q.gp & !gq)" -> "()(p & q.gp & !gq)(p & !q.!gp & gq)"  [label="p & !q/!gp & gq"];
+"()(p & q.gp & !gq)" -> "()(p & q.gp & !gq)(p & !q.!gp & gq)"  [label="p & q/!gp & gq"];
+"()(p & q.gp & !gq)(p & !q.!gp & gq)" -> "()"  [label="!p & !q/gp & !gq"];
+"()(p & q.gp & !gq)(p & !q.!gp & gq)" -> "()(p & q.gp & !gq)"  [label="!p & q/gp & !gq"];
+"()(p & q.gp & !gq)(p & !q.!gp & gq)" -> "()"  [label="p & !q/gp & !gq"];
+"()(p & q.gp & !gq)(p & !q.!gp & gq)" -> "()(p & q.gp & !gq)"  [label="p & q/gp & !gq"];
+>>>>>>> Stashed changes
 __start0 [label="", shape=none];
 __start0 -> "()"  [label=""];
 }
