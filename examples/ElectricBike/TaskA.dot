@@ -1,7 +1,7 @@
-digraph "examples/ElectricBikeExamples/TaskA" {
+digraph "examples/ElectricBike/TaskA" {
 "()" [label="()"];
-"()" -> "()"  [label="!brake/!assist & !brakeregenerate & idle"];
-"()" -> "()"  [label="brake/!assist & !brakeregenerate & idle"];
+"()" -> "()"  [label="!brake/!a & !bg & i"];
+"()" -> "()"  [label="brake/!a & !bg & i"];
 __start0 [label="", shape=none];
 __start0 -> "()"  [label=""];
 }

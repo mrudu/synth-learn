@@ -8,6 +8,6 @@
   ], 
   "input_atomic_propositions": ["request_0", "request_1"], 
   "output_atomic_propositions": ["grant_0", "grant_1"],
-  "target": "",
-  "traces": []
+  "target": "ArbitersTwoProcess/example3.dot",
+  "traces": ["!request_0 & !request_1.!grant_0 & !grant_1"]
 }
