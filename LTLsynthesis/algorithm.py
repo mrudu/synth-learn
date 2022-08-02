@@ -1,6 +1,8 @@
 from aalpy.utils import visualize_automaton, load_automaton_from_file
 import logging
-from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, sort_trace_function, checkCFSafety
+from functools import reduce
+import itertools
+from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, sort_trace_function, checkCFSafety, expand_traces
 from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible, merge_compatible_nodes
 from LTLsynthesis.completeAlgo import complete_mealy_machine
 from LTLsynthesis.utilities import *
@@ -38,6 +40,8 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	# Build Prefix Tree Mealy Machine
 	logger.debug("Building Prefix Tree Mealy Machine...")
+	traces = expand_traces(traces, UCBWrapper.bdd_inputs, UCBWrapper.ucb)
+	print(traces)
 	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), UCBWrapper.bdd_inputs))
 	traces = sorted(traces, key=lambda trace: sort_trace_function(trace, ordered_inputs))
 	mealy_machine = build_prefix_tree(traces)
@@ -118,8 +122,14 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	### STEP 2.5 ###
 	# Mark nodes in "pre-machine"
 	mark_nodes(mealy_machine)
+	visualize_automaton(
+			mealy_machine,
+			path="examples/" + file_name + "premachine",
+			file_type="pdf"
+		)
 
 	logger.debug("Pre-machine complete.")
+	num_premachine_nodes = len(mealy_machine.states)
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
@@ -136,9 +146,22 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 				output_atomic_propositions, traces, 
 				file_name, target, k)
 		else:
+			# cleaner_display(mealy_machine, UCBWrapper.ucb)
 			print(''.join(['-']*20))
+			print("DATA: ")
+			print("# of target nodes: " + str(len(target_machine.states)))
+			print("# of Pre-machine nodes: " + str(num_premachine_nodes))
+			print("# of states added by completion: " + str(len(mealy_machine.states) - num_premachine_nodes))
+			print("Min k value: " + str(k))
 			print("Final machine required traces: " + str(traces))
-			print("Number of traces required: " + str(len(traces)))
+			print("# of traces required: " + str(len(traces)))
+			cleaner_display(mealy_machine, UCBWrapper.ucb)
+			if len(traces) > 1:
+				traces = list(itertools.chain(*traces))
+				print(traces)
+				print("Sum of length of traces: " + str(len(".".join(traces))))
+			elif len(traces) == 1:
+				print("Sum of length of traces: " + str(len(".".join(traces[0]))))
 			visualize_automaton(
 				mealy_machine,
 				path="examples/" + file_name + 'mealy',
@@ -162,6 +185,12 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			file_type="pdf"
 		)
 
+		cleaner_display(mealy_machine, UCBWrapper.ucb)
+		visualize_automaton(
+			mealy_machine,
+			path="examples/" + file_name + 'cleanvisual',
+			file_type="pdf"
+		)
 	return mealy_machine
 
 def mark_nodes(mealy_machine):
