@@ -1,5 +1,6 @@
 import spot, logging
 from aalpy.automata import MealyState, MealyMachine
+import buddy
 
 logger = logging.getLogger('algo-logger')
 
@@ -28,24 +29,24 @@ def checkCFSafety(mealy: MealyMachine, UCBWrapper):
 		f2 = target_state.counting_function
 
 
-		logger.debug("Origin state CF: " + str(f1))
-		logger.debug("Transition state CF: " + str(f2))
+		# logger.debug("Origin state CF: " + str(f1))
+		# logger.debug("Transition state CF: " + str(f2))
 
 		i_bdd = str_to_bdd(i, UCBWrapper.ucb)
 		o_bdd = str_to_bdd(state.output_fun[i], UCBWrapper.ucb)
 		
 		f_ = lowestUpperBound(UCBWrapper.get_transition_state(f1, 
 			i_bdd & o_bdd), f2)
-		logger.debug("Lowest Upper Bound: " + str(f_))
+		# logger.debug("Lowest Upper Bound: " + str(f_))
 		if not UCBWrapper.is_safe(f_):
 			return False
 		if contains(f2, f_) and f_ != f2:
-			logger.debug("Target state reset")
+			# logger.debug("Target state reset")
 			target_state.counting_function = f_;
 			for j in target_state.transitions.keys():
 				edges_to_visit.append([target_state, j])
-		else:
-			logger.debug("Target state remains")
+		# else:
+			# logger.debug("Target state remains")
 	return True
 
 def get_state_from_id(state_id, state_list):
@@ -97,6 +98,35 @@ def lowestUpperBound(vector_1, vector_2):
 		else:
 			vector.append(vector_2[i])
 	return vector
+
+def cleaner_display(mealy_machine, ucb):
+	for state in mealy_machine.states:
+		grouped_transitions = {}
+		for i, output_state in state.transitions.items():
+			grouped_transitions[output_state] = [i] if output_state not in grouped_transitions.keys() else grouped_transitions[output_state] + [i]
+
+		to_remove = []
+		for output_state, input_set in grouped_transitions.items():
+			for o in set(state.output_fun.values()):
+				bdd_max = buddy.bddfalse
+				str_inp = ""
+				common_inp = []
+				for i in input_set:
+					if state.output_fun[i] == o:
+						bdd_max = bdd_max | str_to_bdd(i, ucb)
+						str_inp = str_inp + i + " + "
+						common_inp.append(i)
+				i_max = bdd_to_str(bdd_max)
+				if i_max != "0" and len(common_inp) > 1:
+					print("For the state, output {} {}: {} gives {}".format(
+						state.state_id, o, str_inp, i_max))
+					to_remove.extend(common_inp)
+					state.transitions[i_max] = output_state
+					state.output_fun[i_max] = o
+		for i in to_remove:
+			if i in state.transitions.keys():
+				del state.transitions[i]
+
 
 def is_excluded(pair, exclude_pairs):
 	pair1 = '{}.{}'.format(pair[0].state_id, pair[1].state_id)

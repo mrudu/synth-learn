@@ -95,26 +95,19 @@ def mergeAndPropogate(s1: MealyState, s2: MealyState, mealy_machine: MealyMachin
 		propogate_queue = propogate_queue[1:]
 		if s1 == s2:
 			continue
-		elif s1 not in mealy_machine.states:
-			if s2 in mealy_machine.states:
-				logger.debug(s1.state_id + " has been deleted.")
-				logger.debug("Merging {} and {}".format(s1.mergedFrom.state_id, s2.state_id))
-				mergedStuff = mergeOperation(s1.mergedFrom, s2, mealy_machine)
-			else:
-				logger.debug("Both {} and {} have been deleted.".format(s1.state_id, s2.state_id))
-				logger.debug("Merging {} and {}".format(s1.mergedFrom.state_id, s2.mergedFrom.state_id))
-		elif s2 not in mealy_machine.states:
+		while s1 not in mealy_machine.states:
+			logger.debug(s1.state_id + " has been deleted.")
+			s1 = s1.mergedFrom
+		while s2 not in mealy_machine.states:
 			logger.debug(s2.state_id + " has been deleted.")
-			logger.debug("Merging {} and {}".format(s1.state_id, s2.mergedFrom.state_id))
-			mergedStuff = mergeOperation(s1, s2.mergedFrom, mealy_machine)
-		else:
-			mergedStuff = mergeOperation(s1, s2, mealy_machine)
+			s2 = s2.mergedFrom
+		mergedStuff = mergeOperation(s1, s2, mealy_machine)
 		if mergedStuff is not None:
 			logger.debug("Adding to queue:")
 			for pair in mergedStuff:
 				logger.debug("[{}, {}]".format(pair[0].state_id, pair[1].state_id))
 			propogate_queue.extend(mergedStuff)
-			s1.mergedFrom = s2
+			s2.mergedFrom = s1
 			mealy_machine.states.remove(s2)
 		else:
 			logger.debug("Merge failed! Exiting..")
