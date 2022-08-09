@@ -1,159 +1,156 @@
 from aalpy.automata import MealyState, MealyMachine
 import functools
 from LTLsynthesis.utilities import *
+from LTLsynthesis.completionUtilities import check_state_subsumed, check_state_mergeable, subsume_to_antichain_heads, subsume_to_antichain_head, sort_nodes, sort_list
 import logging
 
 logger = logging.getLogger('algo-logger')
 
-def check_state_subsumed(state, current_state, i_bdd, UCBWrapper):
+def completionStrategy(candidate_nodes, m, i_bdd, mealy_machine, UCBWrapper, addSpuriousEdge=True):
+	# Checking if transition already exists
 	i_str = bdd_to_str(i_bdd)
+	logger.info("Checking potential hole {}, {}".format(m.state_id, i_str))
+	if i_str in m.transitions.keys():
+		next_state = m.transitions[i_str]
+		logger.info("Transition already exists: {} , {} -> {}. Not a hole!".format(
+			m.state_id, i_str, next_state))
+		return next_state
+	
+	# Checking if there exists output where cf is subsumed by premachine state
+	logger.info("Checking if there exists output where cf is subsumed by premachine/newly created state state")
+	for state in candidate_nodes:
+		if check_state_subsumed(state, m, i_bdd, UCBWrapper):
+			return state
+
+	if addSpuriousEdge:
+		# Checking if spurious edge to premachine state is possible
+		logger.info("Checking if spurious edge to premachine state is possible")
+		for state in candidate_nodes:
+			if check_state_mergeable(state, m, i_bdd, mealy_machine, UCBWrapper):
+				return state
+
+	return None
+
+def createNewState(m, i_bdd, minimize_controller, UCBWrapper):
+	# Initializing list of [counting functions, potential outputs].
+	cf_o_list = []
 	for o_bdd in UCBWrapper.bdd_outputs:
-		cf = UCBWrapper.get_transition_state(current_state.counting_function, i_bdd & o_bdd)
+		cf = UCBWrapper.get_transition_state(m.counting_function, i_bdd & o_bdd)
+		cf_o_list.append([o_bdd, cf])
+	
+	# Sorting list by counting functions 
+	cf_o_list = sorted(cf_o_list, key=functools.cmp_to_key(sort_list))	
+	
+	for item in cf_o_list:
+		o_bdd, cf = item
+		if not UCBWrapper.is_safe(cf):
+			continue
+		i_str = bdd_to_str(i_bdd)
 		o_str = bdd_to_str(o_bdd)
-		if contains(cf, state.counting_function):
-			logger.debug("CF subsumed by node..")
-			logger.debug("Counting function of transition: " + str(cf))
-			logger.debug("Counting function of next state: " + str(state.counting_function))
-			logger.info("Creating edge: {} + {}/{} -> {}".format(
-				current_state.state_id,
-				i_str,
-				o_str,
-				state.state_id))
-			current_state.transitions[i_str] = state
-			current_state.output_fun[i_str] = o_str
-			return True
-	return False
+		
+		next_state = MealyState("{}({}.{})".format(m.state_id, i_str, o_str))
+		next_state.counting_function = cf
+		next_state.special_node = False
 
-def check_state_mergeable(state, current_state, i_bdd, mealy_machine, UCBWrapper):
-	i_str = bdd_to_str(i_bdd)
-	for o_bdd in UCBWrapper.bdd_outputs:
-		o_str = bdd_to_str(o_bdd)
-		current_state.transitions[i_str] = state
-		current_state.output_fun[i_str] = o_str
-		initialize_counting_function(mealy_machine, UCBWrapper)
-		if checkCFSafety(mealy_machine, UCBWrapper):
-			cf = UCBWrapper.get_transition_state(current_state.counting_function, i_bdd & o_bdd)
-			logger.debug("Merging with node..")
-			logger.debug("Counting function of transition: " + str(cf))
-			logger.debug("Counting function of next state: " + str(state.counting_function))
-			logger.info("Creating edge: {} + {}/{} -> {}".format(
-				current_state.state_id,
-				i_str,
-				o_str,
-				state.state_id))
-			return True
-		del current_state.transitions[i_str]
-		del current_state.output_fun[i_str]
-	return False
+		m.transitions[i_str] = next_state
+		m.output_fun[i_str] = o_str
 
-def sort_list(item_1, item_2):
-	return sort_counting_functions(item_1[1], item_2[1])
+		# If minimize_controller flag is set, new state counting function abstracted 
+		# to one of the antichain head which it is subsumed by
+		if minimize_controller:
+			subsume_to_antichain_head(next_state, UCBWrapper)
 
-def sort_nodes(node_1, node_2):
-	return sort_counting_functions(node_1.counting_function, node_2.counting_function)
+		logger.info("Creating new state with state id: " + next_state.state_id)
+		logger.debug("Counting function of transition: " + str(next_state.counting_function))
+		logger.info("Creating edge: {} + {}/{} -> {}".format(
+			m.state_id,
+			i_str,
+			o_str,
+			next_state.state_id))
+		
+		return next_state
+	return None
 
-def complete_mealy_machine(mealy_machine, UCBWrapper):
+def complete_mealy_machine(mealy_machine, UCBWrapper, minimize_controller=False, use_premachine_nodes=True):
 	newly_created_nodes = []
 	premachine_nodes = []
+
+	if minimize_controller and use_premachine_nodes:
+		subsume_to_antichain_heads(mealy_machine, UCBWrapper)
 	
+	logger.info("Creating lists of premachine nodes")
 	for state in mealy_machine.states:
 		if state.special_node:
 			premachine_nodes.append(state)
 		else:
 			newly_created_nodes.append(state)
-
-	state_queue = [mealy_machine.initial_state]
-	visited_states = [mealy_machine.initial_state]
+	logger.info("# of premachine nodes: " + str(len(premachine_nodes)))
+	# Sorting premachine nodes by their counting functions
 	premachine_nodes = sorted(premachine_nodes, key=functools.cmp_to_key(sort_nodes))
 
+	# State_Queue keeps track of list of states yet to be visited 
+	# (unvisited states of current state's edges added to queue)
+	state_queue = [mealy_machine.initial_state]
+
+	# visited_states keeps track of list of states visited or in queue.
+	visited_states = [mealy_machine.initial_state]
+
+	# While loop visiting states of mealy machine breadth-first
 	while len(state_queue) > 0:
-		current_state = state_queue[0]
-		state_queue = state_queue[1:]
+		current_state = state_queue.pop(0) # dequeueing
+		
+		# initializing the transition state to None
 		next_state = None
 
 		logger.info("Checking state: " + str(current_state.state_id))
 
+		# checking for legitimate states (Maybe can be written better)
 		if current_state == None:
 			continue
+
+		# checking for a (current_state, i_bdd) "hole"
 		for i_bdd in UCBWrapper.bdd_inputs:
-			i_str = bdd_to_str(i_bdd)
-			
-			logger.info("Checking transition {}, {}".format(current_state.state_id, i_str))
-			
-			# Checking if transition already exists
-			if i_str in current_state.transitions.keys():
-				next_state = current_state.transitions[i_str]
-				logger.info("Transition already exists: {} , {} -> {}".format(
-					current_state.state_id, i_str, next_state))
-				if next_state not in visited_states:
-					state_queue.append(next_state)
-					visited_states.append(next_state)
-				continue
-			
-			mergeComplete = False
 			logger.debug("Counting function of origin state: " + str(current_state.counting_function))
-			newly_created_nodes = sorted(newly_created_nodes, key=functools.cmp_to_key(sort_nodes))
+			candidate_nodes = premachine_nodes + newly_created_nodes
+			
+			if not use_premachine_nodes:
+				candidate_nodes = newly_created_nodes
+			
+			next_state = completionStrategy(
+				candidate_nodes,
+				current_state,
+				i_bdd,
+				mealy_machine,
+				UCBWrapper,
+				not minimize_controller
+			)
 
-			# Checking if there exists output where cf is subsumed by premachine state
-			logger.info("Checking if there exists output where cf is subsumed by premachine/newly created state state")
-			for state in (premachine_nodes + newly_created_nodes):
-				if check_state_subsumed(state, current_state, i_bdd, UCBWrapper):
-					next_state = state
-					mergeComplete = True
-					break
-
-			if mergeComplete:
-				if next_state not in visited_states:
-					state_queue.append(next_state)
-					visited_states.append(next_state)
-				continue
-
-			# Checking if spurious edge to premachine state is possible
-			logger.info("Checking if spurious edge to premachine state is possible")
-			for state in (premachine_nodes + newly_created_nodes):
-				if check_state_mergeable(state, current_state, i_bdd, mealy_machine, UCBWrapper):
-					next_state = state
-					mergeComplete = True
-					break
-
-			if mergeComplete:
+			if (next_state is not None):
 				if (next_state not in visited_states):
 					state_queue.append(next_state)
 					visited_states.append(next_state)
 				continue
 
-			initialize_counting_function(mealy_machine, UCBWrapper)
-			if not checkCFSafety(mealy_machine, UCBWrapper):
-				logger.warning("This mealy machine is unsuitable")
-				return None
+			if not minimize_controller:
+				initialize_counting_function(mealy_machine, UCBWrapper)
+				if not checkCFSafety(mealy_machine, UCBWrapper):
+					logger.warning("This mealy machine is unsuitable")
+					return None
 
 			logger.info("Will have to create a new state")
-			cf_o_list = []
-			for o_bdd in UCBWrapper.bdd_outputs:
-				cf = UCBWrapper.get_transition_state(current_state.counting_function, i_bdd & o_bdd)
-				cf_o_list.append([o_bdd, cf])
+			
+			next_state = createNewState(current_state, i_bdd, minimize_controller, UCBWrapper)
 
-			cf_o_list = sorted(cf_o_list, key=functools.cmp_to_key(sort_list))
-			for item in cf_o_list:
-				o_bdd, cf = item
-				if not UCBWrapper.is_safe(cf):
-					continue
-				o_str = bdd_to_str(o_bdd)
-				next_state = MealyState("{}({}.{})".format(current_state.state_id, i_str, o_str))
-				next_state.counting_function = cf
-				next_state.special_node = False
-				mealy_machine.states.append(next_state)
-				newly_created_nodes.append(next_state)
-				logger.info("Creating new state " + next_state.state_id)
-				logger.debug("Counting function of transition: " + str(cf))
-				logger.info("Creating edge: {} + {}/{} -> {}".format(
-					current_state.state_id,
-					i_str,
-					o_str,
-					next_state.state_id))
-				current_state.transitions[i_str] = next_state
-				current_state.output_fun[i_str] = o_str
-				state_queue.append(next_state)
-				visited_states.append(next_state)
-				break
+			# Adding newly created state to mealy machine
+			mealy_machine.states.append(next_state)
+
+			# Adding newly created state to list of newly created nodes
+			newly_created_nodes.append(next_state)
+
+			# Adding newly created state to state queue and visited nodes
+			state_queue.append(next_state)
+			visited_states.append(next_state)
+			
+			# sorting the newly created nodes
+			newly_created_nodes = sorted(newly_created_nodes, key=functools.cmp_to_key(sort_nodes))
 

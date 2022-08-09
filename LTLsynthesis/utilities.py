@@ -1,8 +1,27 @@
 import spot, logging
 from aalpy.automata import MealyState, MealyMachine
 import buddy
+import itertools
 
 logger = logging.getLogger('algo-logger')
+
+def print_log(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper):
+	print(''.join(['-']*20))
+	print("DATA: ")
+	if target_machine is not None:
+		print("# of target nodes: " + str(len(target_machine.states)))
+	print("# of Pre-machine nodes: " + str(num_premachine_nodes))
+	print("# of states added by completion: " + str(len(mealy_machine.states) - num_premachine_nodes))
+	print("Min k value: " + str(k))
+	print("Final machine required traces: " + str(traces))
+	print("# of traces required: " + str(len(traces)))
+	cleaner_display(mealy_machine, UCBWrapper.ucb)
+	if len(traces) > 1:
+		traces = list(itertools.chain(*traces))
+		print(traces)
+		print("Sum of length of traces: " + str(len(".".join(traces))))
+	elif len(traces) == 1:
+		print("Sum of length of traces: " + str(len(".".join(traces[0]))))
 
 def initialize_counting_function(mealy, UCBWrapper):
 	for state in mealy.states:
