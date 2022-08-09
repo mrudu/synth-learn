@@ -2,6 +2,10 @@ import spot
 import buddy
 import subprocess
 import math
+from LTLsynthesis.utilities import contains
+import logging
+
+logger = logging.getLogger('algo-logger')
 
 class UCB(object):
 	"""docstring for UCB"""
@@ -15,9 +19,9 @@ class UCB(object):
 		# Compute the antichain
 		self.ucb = None
 		self.antichain_heads = []
-		self.compute_winning(psi, input_atomic_propositions, 
-							 output_atomic_propositions)
-
+		if not (self.compute_winning(psi, input_atomic_propositions, 
+							 output_atomic_propositions)):
+			return
 		# universal co-buchi of formula
 		self.num_states = self.ucb.num_states()
 		
@@ -28,46 +32,55 @@ class UCB(object):
 			output_atomic_propositions)
 
 	def compute_winning(self, psi, inputs, outputs):
-		src_file = "~/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
+		src_file = "/Users/mrudula/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
 		antichain_lines = []
 		automata_lines = []
 		state_reassignment = []
+		init_state = 0
+		command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
+			src_file,
+			psi, 
+			",".join(inputs), 
+			",".join(outputs), 
+			self.k)
+		command = "multipass exec foobar -- " + command
+		logger.debug(command)
 		try:
-			command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
-				src_file,
-				psi, 
-				",".join(inputs), 
-				",".join(outputs), 
-				self.k)
-
-			command = "multipass exec foobar -- " + command
-
 			op = subprocess.run(command, shell=True, capture_output=True)
-			captureAut = False
+			captureUCB = False
+			captureStateReassignment = False
 			captureAntichain = False
 			
 			for line in op.stdout.splitlines():
 				l = line.decode()
-				if l == "AUTOMATA":
-					captureAut = True
-				elif l =="REASSIGNING STATES":
-					captureAut = False
-				elif l == 'ANTICHAINHEADS':
+				if l == "UNKNOWN" or l == "UNREALIZABLE":
+					return False
+				elif l == "AUTOMATA":
+					captureUCB = True
+				elif l =="REASSIGNINGSTATES":
+					captureUCB = False
+					captureStateReassignment = True
+				elif l == "INITIALSTATE":
+					captureStateReassignment = False
+				elif l == "ANTICHAINHEADS":
 					captureAntichain = True
-				elif captureAut:
+				elif captureUCB:
 					automata_lines.append(l)
 				elif captureAntichain:
 					antichain_lines.append(l)
-				else:
+				elif captureStateReassignment:
 					state_reassignment.append(int(l))
+				else:
+					init_state = int(l)
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
-		
-		except:
+			self.ucb.set_init_state(state_reassignment.index(init_state))
+		except Exception as e:
+			print(command)
 			print("Cannot execute command.")
-			return
-		
+			print(e)
+			return False
 		print("Maximal Elements of Antichain: ")
 		for line in antichain_lines:
 			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))
@@ -76,6 +89,7 @@ class UCB(object):
 				antichain_vector.append(list_item[s])
 			print(antichain_vector)
 			self.antichain_heads.append(antichain_vector)
+		return True
 
 	def get_bdd_propositions(self, atomic_propositions):
 		# Creating BDD
@@ -122,13 +136,5 @@ class UCB(object):
 	def is_safe(self, state_vector):
 		safe = False
 		for antichain_vector in self.antichain_heads:
-			safe = safe or self.contains(antichain_vector, state_vector)
+			safe = safe or contains(state_vector, antichain_vector)
 		return safe
-
-	def contains(self, vector_1, vector_2):
-		if vector_1 == None or vector_2 == None:
-			return False
-		for i in range(self.num_states):
-			if vector_1[i] < vector_2[i]:
-				return False
-		return True

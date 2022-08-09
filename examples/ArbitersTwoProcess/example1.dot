@@ -1,9 +1,9 @@
-digraph "examples/example1" {
+digraph "examples/ArbitersTwoProcess/example1" {
 "()" [label="()"];
 "()(!p & !q.gp & !gq)" [label="()(!p & !q.gp & !gq)"];
 "()" -> "()(!p & !q.gp & !gq)"  [label="!p & !q/gp & !gq"];
-"()" -> "()(!p & !q.gp & !gq)"  [label="p & !q/gp & !gq"];
 "()" -> "()(!p & !q.gp & !gq)"  [label="!p & q/gp & !gq"];
+"()" -> "()(!p & !q.gp & !gq)"  [label="p & !q/gp & !gq"];
 "()" -> "()(!p & !q.gp & !gq)"  [label="p & q/gp & !gq"];
 "()(!p & !q.gp & !gq)" -> "()"  [label="!p & !q/!gp & gq"];
 "()(!p & !q.gp & !gq)" -> "()"  [label="p & !q/!gp & gq"];
