@@ -12,8 +12,6 @@ from aalpy.utils import load_automaton_from_file
 import sys
 sys.path.insert(0, 'sample/')
 
-from sample.algorithm import *
-
 app = Flask(__name__)
 
 logger = logging.getLogger("algo-logger")
@@ -31,7 +29,6 @@ ch.setFormatter(formatter)
 
 # add ch to logger
 logger.addHandler(ch)
-file_name = input("Enter name of json_file:")
 
 def parse_json(file_name, new_traces = [], k=1):
 	with open('examples/' + file_name + ".json", "r") as read_file:
@@ -53,16 +50,18 @@ def execute():
         return render_template('index.html', LTL_formula="Nothing")
 
 def execute_algorithm(data):
-    input_atomic_propositions = data['input_atomic_propositions']
-    input_atomic_propositions = input_atomic_propositions.split(' ')
-    output_atomic_propositions = data['output_atomic_propositions']
-    output_atomic_propositions = output_atomic_propositions.split(' ')
+    input_atomic_propositions = data['inputs']
+    input_atomic_propositions = input_atomic_propositions.split(',')
+    output_atomic_propositions = data['outputs']
+    output_atomic_propositions = output_atomic_propositions.split(',')
+    
     traces = data['traces']
-    traces = traces.split(',')
+    print(traces)
+    traces = traces.split('\n')
     traces = list(map(lambda x: x.split('.'), traces))
-    target = data['target']
+    print(traces)
 
-    m = build_mealy(data['LTL'], input_atomic_propositions, output_atomic_propositions, traces, "Sample", None, 2)
+    m = build_mealy(data['formula'], input_atomic_propositions, output_atomic_propositions, traces, "Sample", None, 2)
     learning(m)
-    return render_template('index.html', LTL_formula=data['LTL'])
+    return render_template('index.html', LTL_formula=data['formula'])
 
