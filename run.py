@@ -1,11 +1,12 @@
 from flask import Flask
 from flask import request
-from flask import render_template
+from flask import render_template, send_file, jsonify
 
 from LTLsynthesis.algorithm import build_mealy
 from LTLsynthesis.LStarLearning import learning
 import logging
 import json
+import os
 
 from aalpy.utils import load_automaton_from_file
 
@@ -13,6 +14,13 @@ import sys
 sys.path.insert(0, 'sample/')
 
 app = Flask(__name__)
+
+ALLOWED_EXTENSIONS = {'dot'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 logger = logging.getLogger("algo-logger")
 logger.setLevel(logging.DEBUG)
@@ -45,23 +53,52 @@ def parse_json(file_name, new_traces = [], k=1):
 @app.route('/', methods=['GET', 'POST'])
 def execute():
     if request.method == 'POST':
-        return execute_algorithm(request.form)
+        target_file = None
+        if 'target' in request.files:
+            target_file = request.files['target']
+            print(target_file)
+            print(target_file.filename)
+        return execute_algorithm(request.form, target_file)
     else:
         return render_template('index.html', LTL_formula="Nothing")
 
-def execute_algorithm(data):
+@app.route('/download/dot')
+def download_dot():
+    return send_file('static/temp_model_files/LearnedModel.dot', as_attachment=True)
+
+@app.route('/download/pdf')
+def download_pdf():
+    return send_file('static/temp_model_files/LearnedModel.pdf', as_attachment=True)
+
+def execute_algorithm(data, target_file):
+    target_filename = ""
     input_atomic_propositions = data['inputs']
     input_atomic_propositions = input_atomic_propositions.split(',')
     output_atomic_propositions = data['outputs']
     output_atomic_propositions = output_atomic_propositions.split(',')
     
     traces = data['traces']
-    print(traces)
     traces = traces.split('\n')
     traces = list(map(lambda x: x.split('.'), traces))
-    print(traces)
+    
+    if (len(target_file.filename) > 0) and (allowed_file(target_file.filename)):
+        target_filename = "static/temp_model_files/TargetModel.dot"
+        target_file.save(target_filename)
+    elif len(target_file.filename) > 0:
+        print("Not a dot file!")
+        target_file.save(os.path.join("static/temp_model_files", target_file.filename))
 
-    m = build_mealy(data['formula'], input_atomic_propositions, output_atomic_propositions, traces, "Sample", None, 2)
-    learning(m)
-    return render_template('index.html', LTL_formula=data['formula'])
+    m, stats = build_mealy(
+        data['formula'],
+        input_atomic_propositions,
+        output_atomic_propositions,
+        traces, "Sample",
+        target_filename, 2)
+    svg_file = open('static/temp_model_files/LearnedModel.svg', 'r', encoding = 'utf-8').read()
+    svg_file = ''.join(svg_file.split('\n')[6:])
+    return jsonify({
+        'msg': 'success',
+        'img': svg_file,
+        'traces': stats['traces']
+   })
 

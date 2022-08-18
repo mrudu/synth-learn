@@ -24,7 +24,7 @@
 </head>
 <body>
 	<div class="col-lg-10 mx-auto p-3 py-md-5">
-		<header class="blog-header lh-1 py-3">
+		<header class="lh-1 py-3">
 			<div class="row flex-nowrap justify-content-between align-items-center">
 				<div class="col text-center">
 					<h3 class="text-dark">Synthesis With A Touch Of User Interaction</h2>
@@ -32,65 +32,93 @@
 				</div>
 			</div>
 		</header>
-		<main class="container row">
-			<div class="col-4">
-				<nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
-					<nav class="nav nav-pills flex-column">
-						<a class="nav-link" href="#ltl">LTL Formulas: </a>
+		<main class="container">
+			<div class="row">
+				<div class="col-4">
+					<nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
 						<nav class="nav nav-pills flex-column">
-							<a class="nav-link ms-3 my-1" href="#assumptions">Assumptions</a>
-							<a class="nav-link ms-3 my-1" href="#guarantees">Guarantees</a>
+							<a class="nav-link" href="#ltl">LTL Formulas: </a>
+							<nav class="nav nav-pills flex-column">
+								<a class="nav-link ms-3 my-1" href="#assumptions">Assumptions</a>
+								<a class="nav-link ms-3 my-1" href="#guarantees">Guarantees</a>
+							</nav>
+							<a class="nav-link" href="#io">I/O: </a>
+							<nav class="nav nav-pills flex-column">
+								<a class="nav-link ms-3 my-1" href="#io-i">Input Propositions</a>
+								<a class="nav-link ms-3 my-1" href="#io-o">Output Propositions</a>
+							</nav>
+							<a class="nav-link" href="#traces">Traces</a>
+							<a class="nav-link" href="#target">Target</a>
+							<a class="nav-link">Examples: </a>
+							<nav class="nav nav-pills flex-column">
+								<a class="nav-link ms-3 my-1" href="#ltl" id="SimpleArbiter2">Simple Arbiter n=2 </a>
+								<a class="nav-link ms-3 my-1" href="#ltl" id="SimpleArbiter3">Simple Arbiter n=3 </a>
+							</nav>
 						</nav>
-						<a class="nav-link" href="#io">I/O: </a>
-						<nav class="nav nav-pills flex-column">
-							<a class="nav-link ms-3 my-1" href="#io-i">Input Propositions</a>
-							<a class="nav-link ms-3 my-1" href="#io-o">Output Propositions</a>
-						</nav>
-						<a class="nav-link" href="#traces">Traces</a>
 					</nav>
-				</nav>
+				</div>
+				<div class="col-8" data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" tabindex="0">
+					<form action="/" method="POST" class="row" id="ltl-form" enctype="multipart/form-data">
+						<fieldset id="ltl">
+							<div class="mb-3" id="assumptions">
+								<label for="assumptions_textarea" class="form-label">Assumptions</label>
+								<textarea style="width: 100%; display: none;" name="assumptions" id="assumptions_textarea" placeholder="true"></textarea>
+							</div>
+							<div class="mb-3" id="guarantees">
+								<label for="guarantees_textarea" class="form-label">Guarantees</label>
+								<textarea name="guarantees" id="guarantees_textarea" placeholder="G (request_0 -> F grant_0) & G (request_1 -> F grant_1)"></textarea>
+							</div>
+						</fieldset>
+						<fieldset id="io">
+							<div class="mb-3" id="io-i">
+								<label for="input_textarea" class="form-label">Input Propositions</label>
+								<textarea name="inputs" id="inputs_textarea" placeholder="request_0, request_1"></textarea>
+							</div>
+							<div class="mb-3" id="io-o">
+								<label for="output_textarea" class="form-label">Output Propositions</label>
+								<textarea style="width: 100%; display: none;" name="outputs" id="outputs_textarea" placeholder="grant_0, grant_1"></textarea>
+							</div>
+						</fieldset>
+						<fieldset id="traces">
+							<div class="mb-3">
+								<label for="traces_textarea" class="form-label">Traces</label>
+								<textarea style="width: 100%; display: none;" name="traces" id="traces_textarea" placeholder="request_0 & request_1.grant_0 & !grant_1;!request_0 & !request_1.!grant_0 & grant_1"></textarea>
+							</div>
+						</fieldset>
+						<fieldset id="target">
+							<div class="mb-3">
+								<label for="target_file" class="form-label">Target File</label>
+								<input class="form-control" type="file" id="target_file" name="target">
+							</div>
+						</fieldset>
+						<fieldset class="row mb-3">
+							<div class="col-auto">
+								<button type="button" class="btn btn-primary" id="submit">
+									<span class="spinner-border spinner-border-sm visually-hidden loading" role="status" aria-hidden="true"></span>
+									<span class="visually-hidden loading">Loading...</span>
+									<span class="submit-text">Submit</span>
+								</button>
+							</div>
+						</fieldset>
+					</form>
+				</div>
 			</div>
-			<div class="col-8" data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" tabindex="0">
-				<form action="/" method="POST" class="row" id="ltl-form">
-					<fieldset id="ltl">
-						<legend>LTL Formulas</legend>
-						<div class="mb-3" id="assumptions">
-							<label for="assumptions_textarea" class="form-label">Assumptions</label>
-							<textarea style="width: 100%; display: none;" name="assumptions" id="assumptions_textarea" placeholder="true"></textarea>
-						</div>
-						<div class="mb-3" id="guarantees">
-							<label for="guarantees_textarea" class="form-label">Guarantees</label>
-							<textarea name="guarantees" id="guarantees_textarea" placeholder="G (request_0 -> F grant_0) & G (request_1 -> F grant_1)"></textarea>
-						</div>
-					</fieldset>
-					<fieldset id="io">
-						<legend>Input/Output Propositions</legend>
-						<div class="mb-3" id="io-i">
-							<label for="input_textarea" class="form-label">Input Propositions</label>
-							<textarea name="inputs" id="inputs_textarea" placeholder="request_0, request_1"></textarea>
-						</div>
-						<div class="mb-3" id="io-o">
-							<label for="output_textarea" class="form-label">Output Propositions</label>
-							<textarea style="width: 100%; display: none;" name="outputs" id="outputs_textarea" placeholder="grant_0, grant_1"></textarea>
-						</div>
-					</fieldset>
-					<fieldset id="traces">
-						<legend>Traces</legend>
-						<div class="mb-3">
-							<textarea style="width: 100%; display: none;" name="traces" id="traces_textarea" placeholder="request_0 & request_1.grant_0 & !grant_1;!request_0 & !request_1.!grant_0 & grant_1"></textarea>
-						</div>
-					</fieldset>
-					<fieldset>
-						<div class="mb-3">
-							<button type="button" class="btn btn-primary" id="submit">Submit</button>
-						</div>
-					</fieldset>
-				</form>
-				<button class="btn btn-primary" id="refresh">Refresh</button>
-				<figure class="figure" id="image-container">
-					<img id="image" src="{{ url_for('static', filename='LearnedModel.svg') }}" alt="File Not Loaded Yet. Please, to refresh">
-					<figcaption class="figure-caption">A caption for the above image.</figcaption>
+			<div class="row mb-3">
+				<figure class="figure col-7" id="image-container">
+					<svg xmlns="http://www.w3.org/2000/svg" class="svg" width="100%" height="100%">
+					</svg>
+					<figcaption class="figure-caption"></figcaption>
 				</figure>
+				<ul class="list-group list-group-flush col-5 visually-hidden">
+				</ul>
+			</div>
+			<div class="row mb-3">
+				<div class="col-auto visually-hidden downloader">
+					<a class="btn btn-primary" href="download/dot" role="button">Download DOT</a>
+				</div>
+				<div class="col-auto visually-hidden downloader">
+					<a class="btn btn-primary" href="download/pdf" role="button">Download PDF</a>
+				</div>
 			</div>
 		</main>
 	</div>
