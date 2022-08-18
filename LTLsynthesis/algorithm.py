@@ -1,4 +1,4 @@
-from aalpy.utils import visualize_automaton, load_automaton_from_file
+from aalpy.utils import visualize_automaton, save_automaton_to_file, load_automaton_from_file
 import logging
 from functools import reduce
 from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, sort_trace_function, checkCFSafety, expand_traces
@@ -71,7 +71,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	target_machine = None
 	if len(target) > 0:
 		logger.debug("Checking if K is appropriate for target machine")
-		target_machine = load_automaton_from_file("examples/" + target, automaton_type="mealy")
+		target_machine = load_automaton_from_file(target, automaton_type="mealy")
 		k_unsafe = True
 		count = 0
 		while k_unsafe:
@@ -121,11 +121,6 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 	### STEP 2.5 ###
 	# Mark nodes in "pre-machine"
 	mark_nodes(mealy_machine)
-	visualize_automaton(
-			mealy_machine,
-			path="examples/" + file_name + "premachine",
-			file_type="pdf"
-		)
 
 	logger.debug("Pre-machine complete.")
 	num_premachine_nodes = len(mealy_machine.states)
@@ -144,44 +139,25 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 				input_atomic_propositions, 
 				output_atomic_propositions, traces, 
 				file_name, target, k)
-		else:
-			visualize_automaton(
-				mealy_machine,
-				path="examples/" + file_name + 'mealy',
-				file_type="pdf"
-			)
-			visualize_automaton(
-				target_machine,
-				path="examples/" + file_name + 'target',
-				file_type="pdf"
-			)
-	else:
-		print("No target machine. Saving dot file...")
-		visualize_automaton(
-			mealy_machine,
-			path="examples/" + file_name,
-			file_type="dot"
-		)
-		visualize_automaton(
-			mealy_machine,
-			path="examples/" + file_name + 'visual',
-			file_type="pdf"
-		)
+	save_mealy_machile(mealy_machine, "static/temp_model_files/LearnedModel", ['dot'])
+	cleaner_display(mealy_machine, UCBWrapper.ucb)
+	save_mealy_machile(mealy_machine, "static/temp_model_files/LearnedModel", ['svg', 'pdf'])
+	print_log(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper)
+	return mealy_machine, {'traces': traces, 'num_premachine_nodes': num_premachine_nodes, 'k': k}
 
-		cleaner_display(mealy_machine, UCBWrapper.ucb)
-		visualize_automaton(
-			mealy_machine,
-			path="examples/" + file_name + 'cleanvisual',
-			file_type="pdf"
-		)
+def display_mealy_machine(mealy_machine, file_name, file_type="pdf"):
 	visualize_automaton(
 		mealy_machine,
-		file_type="svg",
-		path="static/LearnedModel"
+		path="examples/" + file_name,
+		file_type="pdf"
 	)
-	print_log(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper)
-	return mealy_machine
-
+def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
+	for type in file_type:
+		save_automaton_to_file(
+			mealy_machine,
+			file_type=type,
+			path=file_name
+		)
 def mark_nodes(mealy_machine):
 	for state in mealy_machine.states:
 		state.special_node = True
