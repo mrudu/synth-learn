@@ -1,7 +1,7 @@
 from aalpy.utils import visualize_automaton, load_automaton_from_file
 import logging
 from functools import reduce
-from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, sort_trace_function, checkCFSafety, expand_traces
+from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, trace_to_int_function, checkCFSafety, expand_traces
 from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible, merge_compatible_nodes
 from LTLsynthesis.completeAlgo import complete_mealy_machine
 from LTLsynthesis.utilities import *
@@ -9,12 +9,25 @@ from LTLsynthesis.UCBBuilder import UCB
 
 logger = logging.getLogger("algo-logger")
 
+def generated_prefixes(traces):
+	prefixes = []
+	for trace in traces:
+		for i in range(0, len(trace)-1, 2):
+			prefixes.append(trace[0:(i+2)])
+			print(trace[0:(i+2)])
+	return list(set(list(map(lambda trace: '.'.join(trace), prefixes))))
 
-def check_to_continue():
-	answer = input("Are you sure you wish to continue? (y/Y for yes): ")
-	return (answer in "yY")
+def generalization_algorithm(traces, LTL_formula, merging_strategy, I, O):
+	node_queue = [mealy_machine.initial_state]
+	visited_nodes = []
+	while node_queue:
+		current_node = node_queue.pop(0)
+		visited_nodes.append(current_node)
 
-def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositions, traces, file_name, target, k = 2):
+
+def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):	
+	global ordered_inputs, bdd_inputs, ucb, UCBWrapper
+
 	### STEP 1 ###
 
 	# Check if K is appropriate
@@ -22,7 +35,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 	logger.debug("Checking if K is appropriate for LTL")
 	k_unsafe = True
-	UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+	UCBWrapper = UCB(k, LTL_formula, I, O)
 	count = 0
 	while UCBWrapper.ucb is None:
 		logger.debug("LTL Specification is unsafe for k=" + str(k))
@@ -33,16 +46,19 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 			else:
 				return None
 		k = k + 1
-		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+		UCBWrapper = UCB(k, LTL_formula, I, O)
 	
 	logger.info("LTL Specification is safe for k=" + str(k))
+	bdd_inputs = UCBWrapper.bdd_inputs
+	ucb = UCBWrapper.ucb
 
 	# Build Prefix Tree Mealy Machine
 	logger.debug("Building Prefix Tree Mealy Machine...")
-	traces = expand_traces(traces, UCBWrapper.bdd_inputs, UCBWrapper.ucb)
-	print(traces)
-	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), UCBWrapper.bdd_inputs))
-	traces = sorted(traces, key=lambda trace: sort_trace_function(trace, ordered_inputs))
+	traces = expand_traces(traces)
+	traces = generated_prefixes(traces)
+	traces = list(map(lambda trace: trace.split('.'), traces))
+	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), bdd_inputs))
+	traces = sorted(traces, key=lambda trace: trace_to_int_function(trace))
 	mealy_machine = build_prefix_tree(traces)
 
 	logger.debug("Prefix Tree Mealy Machine built")
@@ -64,7 +80,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 				count = 0
 			else:
 				return None
-		UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+		UCBWrapper = UCB(k, LTL_formula, I, O)
 
 	# Check if K is appropriate for target
 	logger.debug("Checking if K is appropriate for target machine")
@@ -88,7 +104,7 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 					count = 0
 				else:
 					return None
-			UCBWrapper = UCB(k, LTL_formula, input_atomic_propositions, output_atomic_propositions)
+			UCBWrapper = UCB(k, LTL_formula, I, O)
 
 	logger.debug("Chosen appropriate K.")
 	### STEP 2 ###
@@ -141,8 +157,8 @@ def build_mealy(LTL_formula, input_atomic_propositions, output_atomic_propositio
 
 			return build_mealy(
 				LTL_formula, 
-				input_atomic_propositions, 
-				output_atomic_propositions, traces, 
+				I, 
+				O, traces, 
 				file_name, target, k)
 		else:
 			visualize_automaton(

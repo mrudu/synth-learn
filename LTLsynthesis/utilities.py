@@ -2,8 +2,15 @@ import spot, logging
 from aalpy.automata import MealyState, MealyMachine
 import buddy
 import itertools
+import LTLsynthesis.algorithm
 
 logger = logging.getLogger('algo-logger')
+
+
+
+def check_to_continue():
+	answer = input("Are you sure you wish to continue? (y/Y for yes): ")
+	return (answer in "yY")
 
 def print_log(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper):
 	print(''.join(['-']*20))
@@ -29,6 +36,8 @@ def initialize_counting_function(mealy, UCBWrapper):
 	mealy.initial_state.counting_function[UCBWrapper.ucb.get_init_state_number()] = 0
 
 def checkCFSafety(mealy: MealyMachine, UCBWrapper):
+	print(LTLsynthesis.algorithm.UCBWrapper)
+	print(UCBWrapper)
 	# Checking CF Safety of the new Mealy Machine
 	if not UCBWrapper.is_safe(mealy.initial_state.counting_function):
 		return False

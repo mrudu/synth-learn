@@ -13,7 +13,7 @@ def completionStrategy(candidate_nodes, m, i_bdd, mealy_machine, UCBWrapper, add
 	if i_str in m.transitions.keys():
 		next_state = m.transitions[i_str]
 		logger.info("Transition already exists: {} , {} -> {}. Not a hole!".format(
-			m.state_id, i_str, next_state))
+			m.state_id, i_str, next_state.state_id))
 		return next_state
 	
 	# Checking if there exists output where cf is subsumed by premachine state

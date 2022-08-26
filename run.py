@@ -26,7 +26,7 @@ def parse_json(file_name, new_traces = [], k=1):
 	LTL_formula = "((" + ') & ('.join(data['assumptions']) + "))->((" + ') & ('.join(data['guarantees']) + "))"
 	if len(new_traces) == 0:
 		traces = data['traces']
-		traces = list(map(lambda x: x.split('.'), traces))
+		traces = list(map(lambda trace: trace.split('.'), traces))
 	else:
 		traces = copy.deepcopy(new_traces)
 	m = build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
