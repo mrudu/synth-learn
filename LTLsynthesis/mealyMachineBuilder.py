@@ -48,25 +48,23 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 	return [True, None]
 
 def get_compatible_nodes(mealy_machine, exclude=[]):
-	states = mealy_machine.states
+	states = sorted(mealy_machine.states, key=functools.cmp_to_key(sort_nodes_by_traces))
 	pair_nodes = []
 	for s1 in states:
 		for s2 in states:
 			if s1 == s2:
-				continue
+				break
 			if s1.state_id == s2.state_id:
-				continue
+				break
 			if is_excluded([s1, s2], exclude):
-				continue
-			if [s2, s1] in pair_nodes:
 				continue
 			m1 = MealyMachine(s1, states)
 			m2 = MealyMachine(s2, states)
 			isComp, cex = isCrossProductCompatible(m1, m2)
 			if isComp:
 				pair_nodes.append([s1, s2])
-	pair_nodes = sorted(pair_nodes, key=functools.cmp_to_key(sort_min_cf))
-	# pair_nodes = sorted(pair_nodes, key=lambda x: distance_nodes(x[0], x[1]))
+	pair_nodes = sorted(pair_nodes, key=functools.cmp_to_key(sort_merge_cand_by_min_cf))
+	# pair_nodes = sorted(pair_nodes, key=lambda x: sort_nodes_by_cf_diff(x[0], x[1]))
 	return pair_nodes
 
 def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
