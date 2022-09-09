@@ -56,8 +56,6 @@ def execute():
         target_file = None
         if 'target' in request.files:
             target_file = request.files['target']
-            print(target_file)
-            print(target_file.filename)
         return execute_algorithm(request.form, target_file)
     else:
         return render_template('index.html', LTL_formula="Nothing")
@@ -69,6 +67,10 @@ def download_dot():
 @app.route('/download/pdf')
 def download_pdf():
     return send_file('static/temp_model_files/LearnedModel.pdf', as_attachment=True)
+
+@app.route('/download/target')
+def download_target():
+    return send_file('static/temp_model_files/TargetModel.pdf', as_attachment=True)
 
 def execute_algorithm(data, target_file):
     target_filename = ""

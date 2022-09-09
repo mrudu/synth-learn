@@ -141,6 +141,10 @@ def complete_mealy_machine(mealy_machine, UCBWrapper, minimize_controller=False,
 			
 			next_state = createNewState(current_state, i_bdd, minimize_controller, UCBWrapper)
 
+			if next_state is None:
+				current_state.color = "black"
+				return None
+
 			# Adding newly created state to mealy machine
 			mealy_machine.states.append(next_state)
 
