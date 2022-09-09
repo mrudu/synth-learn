@@ -63,11 +63,14 @@ class UCB(object):
 			captureUCB = False
 			captureStateReassignment = False
 			captureAntichain = False
+			captureInitialState = False
 			
 			for line in op.stdout.splitlines():
 				l = line.decode()
 				if l == "UNKNOWN" or l == "UNREALIZABLE":
 					return False
+				elif l == "REALIZABLE":
+					break
 				elif l == "AUTOMATA":
 					captureUCB = True
 				elif l =="REASSIGNINGSTATES":
@@ -75,7 +78,9 @@ class UCB(object):
 					captureStateReassignment = True
 				elif l == "INITIALSTATE":
 					captureStateReassignment = False
+					captureInitialState = True
 				elif l == "ANTICHAINHEADS":
+					captureInitialState = False
 					captureAntichain = True
 				elif captureUCB:
 					automata_lines.append(l)
@@ -83,7 +88,7 @@ class UCB(object):
 					antichain_lines.append(l)
 				elif captureStateReassignment:
 					state_reassignment.append(int(l))
-				else:
+				elif captureInitialState:
 					init_state = int(l)
 			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
@@ -102,6 +107,8 @@ class UCB(object):
 				antichain_vector.append(list_item[s])
 			print(antichain_vector)
 			self.antichain_heads.append(antichain_vector)
+		if len(antichain_lines) == 0:
+			self.antichain_heads.append([0])
 		return True
 
 	def get_bdd_propositions(self, atomic_propositions):

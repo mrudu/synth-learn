@@ -77,7 +77,7 @@ def merge_compatible_nodes(pair, exclude_pairs, mealy_machine,
 		exclude_pairs.append(pair)
 	else:
 		initialize_counting_function(mealy_machine, UCBWrapper)
-		if not checkCFSafety(mealy_machine, UCBWrapper):
+		if not checkCFSafety(mealy_machine):
 			mealy_machine = old_mealy_machine
 			exclude_pairs.append(pair)
 		else:

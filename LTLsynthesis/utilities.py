@@ -35,9 +35,8 @@ def initialize_counting_function(mealy, UCBWrapper):
 		state.counting_function = [-1]*UCBWrapper.num_states;
 	mealy.initial_state.counting_function[UCBWrapper.ucb.get_init_state_number()] = 0
 
-def checkCFSafety(mealy: MealyMachine, UCBWrapper):
-	print(LTLsynthesis.algorithm.UCBWrapper)
-	print(UCBWrapper)
+def checkCFSafety(mealy: MealyMachine):
+	UCBWrapper = LTLsynthesis.algorithm.UCBWrapper
 	# Checking CF Safety of the new Mealy Machine
 	if not UCBWrapper.is_safe(mealy.initial_state.counting_function):
 		return False
@@ -146,8 +145,8 @@ def cleaner_display(mealy_machine, ucb):
 						common_inp.append(i)
 				i_max = bdd_to_str(bdd_max)
 				if i_max != "0" and len(common_inp) > 1:
-					print("For the state, output {} {}: {} gives {}".format(
-						state.state_id, o, str_inp, i_max))
+					logger.debug("For the state, output {} {}: {} gives {}".format(
+						state.state_id, o, '+'.join(common_inp), i_max))
 					to_remove.extend(common_inp)
 					state.transitions[i_max] = output_state
 					state.output_fun[i_max] = o

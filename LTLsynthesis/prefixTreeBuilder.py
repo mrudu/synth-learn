@@ -3,8 +3,10 @@ from LTLsynthesis.utilities import *
 import LTLsynthesis.algorithm
 import re
 
+logger = logging.getLogger("algo-logger")
+
 def trace_to_int_function(trace):
-	print(trace)
+	logger.debug("Trace to int function: " + str(trace))
 	ordered_inputs = LTLsynthesis.algorithm.ordered_inputs
 	input_filtered_trace = list(filter(
 		lambda proposition: proposition in ordered_inputs, trace))
@@ -68,8 +70,14 @@ def sort_merge_cand_by_min_cf(node_pair_1, node_pair_2):
 	node_1, node_2 = node_pair_1
 	node_3, node_4 = node_pair_2
 
-	node_1_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_1.state_id).split('.'))
-	node_3_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_3.state_id).split('.'))
+	logger.debug("Traces coming from sort merge cand: {} and {} where {} and {} are original".format(
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'),
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_3.state_id).split('.'),
+		node_1.state_id, node_3.state_id))
+	node_1_id = trace_to_int_function(filter(lambda x: len(x) > 0, 
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.')))
+	node_3_id = trace_to_int_function(filter(lambda x: len(x) > 0,
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_3.state_id).split('.')))
 	if node_1_id == node_3_id:
 		return sort_counting_functions(node_2.counting_function, node_4.counting_function)
 	elif node_1_id < node_3_id:
@@ -78,8 +86,12 @@ def sort_merge_cand_by_min_cf(node_pair_1, node_pair_2):
 		return 1
 
 def sort_nodes_by_traces(node_1, node_2):
-	node_1_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_1.state_id).split('.'))
-	node_2_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_2.state_id).split('.'))
+	logger.debug("Traces coming from sort nodes by traces: {} and {} where {} and {} are original".format(
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_1.state_id).split('.'),
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_2.state_id).split('.'),
+		node_1.state_id, node_2.state_id))
+	node_1_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'))
+	node_2_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_2.state_id).split('.'))
 
 	if node_1_id < node_2_id:
 		return -1

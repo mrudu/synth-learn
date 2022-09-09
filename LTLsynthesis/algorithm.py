@@ -1,4 +1,4 @@
-from aalpy.utils import visualize_automaton, save_automaton_to_file, load_automaton_from_file
+from CustomAALpy.FileHandler import visualize_automaton, save_automaton_to_file, load_automaton_from_file
 import logging
 from functools import reduce
 from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, trace_to_int_function, checkCFSafety, expand_traces
@@ -14,7 +14,7 @@ def generated_prefixes(traces):
 	for trace in traces:
 		for i in range(0, len(trace)-1, 2):
 			prefixes.append(trace[0:(i+2)])
-			print(trace[0:(i+2)])
+			logger.debug("Extended trace: " + str(trace[0:(i+2)]))
 	return list(set(list(map(lambda trace: '.'.join(trace), prefixes))))
 
 def generalization_algorithm(traces, LTL_formula, merging_strategy, I, O):
@@ -53,22 +53,23 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	ucb = UCBWrapper.ucb
 
 	# Build Prefix Tree Mealy Machine
-	logger.debug("Building Prefix Tree Mealy Machine...")
+	logger.info("Building Prefix Tree Mealy Machine...")
 	traces = expand_traces(traces)
 	traces = generated_prefixes(traces)
 	traces = list(map(lambda trace: trace.split('.'), traces))
 	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), bdd_inputs))
+	logger.debug("Traces coming from here: (sorting traces)")
 	traces = sorted(traces, key=lambda trace: trace_to_int_function(trace))
 	mealy_machine = build_prefix_tree(traces)
 
-	logger.debug("Prefix Tree Mealy Machine built")
+	logger.info("Prefix Tree Mealy Machine built")
 	
 	count = 0
 	# Check if K is appropriate for traces
-	logger.debug("Checking if K is appropriate for traces")
+	logger.info("Checking if K is appropriate for traces")
 	while k_unsafe:
 		initialize_counting_function(mealy_machine, UCBWrapper)
-		if checkCFSafety(mealy_machine, UCBWrapper):
+		if checkCFSafety(mealy_machine):
 			logger.info("Traces is safe for k=" + str(k))
 			k_unsafe = False
 			break
@@ -83,16 +84,16 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 		UCBWrapper = UCB(k, LTL_formula, I, O)
 
 	# Check if K is appropriate for target
-	logger.debug("Checking if K is appropriate for target machine")
 	target_machine = None
 	if len(target) > 0:
-		logger.debug("Checking if K is appropriate for target machine")
-		target_machine = load_automaton_from_file(target, automaton_type="mealy")
+		logger.info("Checking if K is appropriate for target machine")
+		target_machine = load_automaton_from_file(target)
+		save_mealy_machile(target_machine, "static/temp_model_files/TargetModel", ['svg', 'pdf'])
 		k_unsafe = True
 		count = 0
 		while k_unsafe:
 			initialize_counting_function(target_machine, UCBWrapper)
-			if checkCFSafety(target_machine, UCBWrapper):
+			if checkCFSafety(target_machine):
 				logger.info('Target is safe for k=' + str(k))
 				k_unsafe = False
 				break
@@ -177,3 +178,4 @@ def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
 def mark_nodes(mealy_machine):
 	for state in mealy_machine.states:
 		state.special_node = True
+		state.premachine_transitions = list(state.transitions.keys())
