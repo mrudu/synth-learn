@@ -1,5 +1,6 @@
 from CustomAALpy.FileHandler import visualize_automaton, save_automaton_to_file, load_automaton_from_file
 import logging
+from flask import session
 from functools import reduce
 from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, trace_to_int_function, checkCFSafety, expand_traces
 from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible, merge_compatible_nodes
@@ -165,7 +166,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 def display_mealy_machine(mealy_machine, file_name, file_type="pdf"):
 	visualize_automaton(
 		mealy_machine,
-		path="examples/" + file_name,
+		path="examples/" + file_name + '_' + str(session['number']),
 		file_type="pdf"
 	)
 def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
@@ -173,7 +174,7 @@ def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
 		save_automaton_to_file(
 			mealy_machine,
 			file_type=type,
-			path=file_name
+			path=file_name + '_' + str(session['number'])
 		)
 def mark_nodes(mealy_machine):
 	for state in mealy_machine.states:

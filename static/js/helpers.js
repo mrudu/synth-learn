@@ -19,6 +19,8 @@ $(document).ready(function() {
 			'traces': ['p & q & r.gp & !gq & !gr']
 		}
 	}
+
+	let variable_set = {}
 	
 	let initEditor = function(id, mode="ltl") {
 		return CodeMirror.fromTextArea(document.getElementById(id), {
@@ -46,9 +48,18 @@ $(document).ready(function() {
 	let outputsEditor = initLineEditor("outputs_textarea");
 	let tracesEditor = initEditor("traces_textarea", "traces");
 	
+	let process_variable = str => {
+		str = str.split('=').map(s => s.trim());
+		variable_set[str[0]] = str[1];
+		return '';
+	}
 	let make_formula = str => "((" + str.split(/\r|\n/).map(s => s.trim()).filter(s => s.length > 0).join(") & (") + "))";
 	let make_propositions = str => str.split(/\r|\n|,| /).filter(s => s.length > 0).map(s => s.trim()).join(',');
-	let make_traces = str => str.split(/\r|\n/).map(s => s.trim().split(/\.|,|:|;/).join(".")).filter(s => s.length > 0).join('\n');
+	let make_traces = str => str.split(/\r|\n/).map(
+		s => s.includes('=')? 
+		process_variable(s):
+		s.trim().split(/\.|,|:|;|\#/).map(t => t in variable_set? variable_set[t]: t).join(".")).filter(
+		s => s.length > 0).join('\n');
 
 	let setData =  function (exampleName) {
 		assumptionsEditor.setValue(exampleReference[exampleName]['assumptions'].join('\n'));

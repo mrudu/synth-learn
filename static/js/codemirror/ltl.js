@@ -13,6 +13,7 @@ CodeMirror.defineSimpleMode("traces", {
         {regex: /(?:true|false|tt|ff|0|1)\b/, token: "atom"},
         {regex: /&&|&|AND|\|\||\||OR|!|NOT/, token: "operator"},
         {regex: /[a-z_][a-zA-Z_0-9]*/, token: "variable"},
-        {regex: /\(|\)/, token: "bracket"}
+        {regex: /\(|\)/, token: "bracket"},
+        {regex: /(?<=([a-zA-Z_0-9]+\ ?=\ *)).*/, token: "string"}
     ]
 });

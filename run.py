@@ -1,9 +1,10 @@
 from flask import Flask
 from flask import request
-from flask import render_template, send_file, jsonify
+from flask import render_template, send_file, jsonify, session
 
 from LTLsynthesis.algorithm import build_mealy
 from LTLsynthesis.LStarLearning import learning
+import random
 import logging
 import json
 import os
@@ -14,6 +15,7 @@ import sys
 sys.path.insert(0, 'sample/')
 
 app = Flask(__name__)
+app.secret_key = '97db21348530a03c3a836519c3d636b1f42d4fae7c98038349a9ea87a20dcc36'
 
 ALLOWED_EXTENSIONS = {'dot'}
 
@@ -53,24 +55,38 @@ def parse_json(file_name, new_traces = [], k=1):
 @app.route('/', methods=['GET', 'POST'])
 def execute():
     if request.method == 'POST':
+        session['number'] = random.randint(100, 1000)
         target_file = None
         if 'target' in request.files:
             target_file = request.files['target']
+        session.pop('number', None)
         return execute_algorithm(request.form, target_file)
     else:
         return render_template('index.html', LTL_formula="Nothing")
 
 @app.route('/download/dot')
 def download_dot():
-    return send_file('static/temp_model_files/LearnedModel.dot', as_attachment=True)
+    return send_file(
+        'static/temp_model_files/LearnedModel_{}.dot'.format(session['number']), 
+        as_attachment=True)
 
 @app.route('/download/pdf')
 def download_pdf():
-    return send_file('static/temp_model_files/LearnedModel.pdf', as_attachment=True)
+    return send_file(
+        'static/temp_model_files/LearnedModel_{}.pdf'.format(session['number']), 
+        as_attachment=True)
 
 @app.route('/download/target')
 def download_target():
     return send_file('static/temp_model_files/TargetModel.pdf', as_attachment=True)
+
+@app.route('/clear')
+def clear_files():
+    dir = 'static/temp_model_files'
+    for file in os.scandir(dir):
+        os.remove(file.path)
+    return render_template('index.html')
+
 
 def execute_algorithm(data, target_file):
     target_filename = ""
@@ -84,7 +100,7 @@ def execute_algorithm(data, target_file):
     traces = list(map(lambda x: x.split('.'), traces))
     
     if (len(target_file.filename) > 0) and (allowed_file(target_file.filename)):
-        target_filename = "static/temp_model_files/TargetModel.dot"
+        target_filename = "static/temp_model_files/TargetModel_{}.dot".format(session['number'])
         target_file.save(target_filename)
     elif len(target_file.filename) > 0:
         print("Not a dot file!")
@@ -96,7 +112,9 @@ def execute_algorithm(data, target_file):
         output_atomic_propositions,
         traces, "Sample",
         target_filename, 2)
-    svg_file = open('static/temp_model_files/LearnedModel.svg', 'r', encoding = 'utf-8').read()
+    svg_file = open(
+        'static/temp_model_files/LearnedModel_{}.svg'.format(session['number']), 
+        'r', encoding = 'utf-8').read()
     svg_file = ''.join(svg_file.split('\n')[6:])
     return jsonify({
         'msg': 'success',
