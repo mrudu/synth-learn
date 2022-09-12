@@ -91,3 +91,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Custom Project Files
+./static/temp_model_files/*
