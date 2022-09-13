@@ -77,6 +77,9 @@ $(document).ready(function() {
 		$('.loading').removeClass('visually-hidden');
 		
 		let data = new FormData($('#ltl-form')[0]);
+
+		let showTarget = data.get('target').size > 0;
+		
 		let assumptions = assumptionsEditor.getValue().trim();
 		let guarantees = guaranteesEditor.getValue().trim();
 		if (!guarantees) {
@@ -106,7 +109,7 @@ $(document).ready(function() {
 		data.set('outputs', outputs);
 
 		let traces = tracesEditor.getValue().trim();
-		data.set('traces', make_traces(traces));		
+		data.set('traces', make_traces(traces));	
 		
 		$.ajax({
 			type: 'POST',
@@ -120,6 +123,9 @@ $(document).ready(function() {
 				$('.downloader').removeClass('visually-hidden');
 				$('.submit-text').removeClass('visually-hidden');
 				$('.loading').addClass('visually-hidden');
+				if (!showTarget) {
+					$('.downloader.target').addClass('visually-hidden');
+				}
 				document.querySelector('svg').innerHTML = data.img;
 				$('.figure .svg svg').attr('height', $('.figure .svg').attr('height'));
 				$('.figure-caption').html("");
