@@ -64,6 +64,7 @@ def get_compatible_nodes(mealy_machine, exclude=[]):
 			if isComp:
 				pair_nodes.append([s1, s2])
 	pair_nodes = sorted(pair_nodes, key=functools.cmp_to_key(sort_merge_cand_by_min_cf))
+	logger.debug("Returning {} pairs of potentially mergeable nodes".format(len(pair_nodes)))
 	# pair_nodes = sorted(pair_nodes, key=lambda x: sort_nodes_by_cf_diff(x[0], x[1]))
 	return pair_nodes
 

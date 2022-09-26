@@ -93,6 +93,8 @@ def sort_nodes_by_traces(node_1, node_2):
 	node_1_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'))
 	node_2_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_2.state_id).split('.'))
 
+	logger.debug("Traces converted to: {} and {}".format(node_1_id, node_2_id))
+
 	if node_1_id < node_2_id:
 		return -1
 	elif node_1_id == node_2_id:
