@@ -7,6 +7,31 @@ import logging
 
 logger = logging.getLogger('algo-logger')
 
+def build_strix(LTL_formula, I, O):
+	src_file = "/Users/mrudula/Downloads/strix"
+	command = "{} -f '{}' --ins=\"{}\" --outs=\"{}\" --minimize".format(
+			src_file,
+			LTL_formula, 
+			",".join(I), 
+			",".join(O)) 
+	print(command)
+	try:
+		op = subprocess.run(command, shell=True, capture_output=True)
+		automata_lines = []
+		ucb = None
+		
+		for line in op.stdout.splitlines():
+			l = line.decode()
+			automata_lines.append(l)
+
+		for a in spot.automata('\n'.join(automata_lines[1:])):
+			ucb = a
+		return a.show().data
+	except Exception as e:
+		print(e)
+
+	return ""
+
 def build_UCB(LTL_formula, I, O, k=2, limit=10):
 	global UCBWrapper
 	UCBWrapper = UCB(k, LTL_formula, I, O)

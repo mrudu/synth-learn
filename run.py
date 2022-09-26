@@ -4,6 +4,7 @@ from flask import render_template, send_file, jsonify, session
 
 from LTLsynthesis.algorithm import build_mealy
 from LTLsynthesis.LStarLearning import learning
+from LTLsynthesis.UCBBuilder import build_strix
 import random
 import logging
 import json
@@ -59,10 +60,17 @@ def execute():
         target_file = None
         if 'target' in request.files:
             target_file = request.files['target']
-        session.pop('number', None)
         return execute_algorithm(request.form, target_file)
     else:
-        return render_template('index.html', LTL_formula="Nothing")
+        return render_template('AcaciaSynth.html', LTL_formula="Nothing", type="acacia")
+
+@app.route('/strix', methods=['GET', 'POST'])
+def execute_strix():
+    if request.method == 'POST':
+        session['number'] = random.randint(100, 1000)
+        return execute_strix(request.form)
+    else:
+        return render_template('StrixDemo.html', LTL_formula="Nothing", type="strix")
 
 @app.route('/download/dot')
 def download_dot():
@@ -85,7 +93,7 @@ def clear_files():
     dir = 'static/temp_model_files'
     for file in os.scandir(dir):
         os.remove(file.path)
-    return render_template('index.html')
+    return render_template('AcaciaSynth.html', type="acacia")
 
 
 def execute_algorithm(data, target_file):
@@ -120,5 +128,20 @@ def execute_algorithm(data, target_file):
         'msg': 'success',
         'img': svg_file,
         'traces': stats['traces']
+   })
+
+def execute_strix(data):
+    input_atomic_propositions = data['inputs']
+    input_atomic_propositions = input_atomic_propositions.split(',')
+    output_atomic_propositions = data['outputs']
+    output_atomic_propositions = output_atomic_propositions.split(',')
+
+    m= build_strix(
+        data['formula'],
+        input_atomic_propositions,
+        output_atomic_propositions)
+    return jsonify({
+        'msg': 'success',
+        'img': m
    })
 

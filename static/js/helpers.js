@@ -17,6 +17,22 @@ $(document).ready(function() {
 			'inputs': 'p, q, r',
 			'outputs': 'gp, gq, gr',
 			'traces': ['p & q & r.gp & !gq & !gr']
+		},
+		'LiftFloor3': {
+			'assumptions': [],
+			'guarantees' :
+				["G (b0 -> F (at0))",
+				"G (b1 -> F (at1))",
+				"G (b2 -> F (at2))",
+				"G ((!at0 & !at1 & at2) | (at0 & !at1 & !at2) | (!at0 & at1 & !at2))",
+				"G (at0 -> X(at0 | at1))",
+				"G (at1 -> X(at0 | at1 | at2))",
+				"G (at2 -> X(at1 | at2))"],
+			'inputs': 'b0, b1, b2, b3',
+			'outputs': 'at0, at1, at2',
+			'traces': ['!b0 & !b1 & !b2.at0 & !at1 & !at2',
+			'b2.at0 & !at1 & !at2.b0 & b1 & !b2.!at0 & at1 & !at2.b0 & b1 & b2.!at0 & !at1 & at2',
+			'b1 & !b2.at0 & !at1 & !at2.!b0 & b1 & !b2.!at0 & at1 & !at2.!b0 & !b1 & !b2.!at0 & at1 & !at2']
 		}
 	}
 
@@ -76,7 +92,7 @@ $(document).ready(function() {
 		$('ul.list-group').addClass('visually-hidden').html("");
 		$('.loading').removeClass('visually-hidden');
 		
-		let data = new FormData($('#ltl-form')[0]);
+		let data = new FormData($('#acacia-form')[0]);
 
 		let showTarget = data.get('target').size > 0;
 		
@@ -138,6 +154,68 @@ $(document).ready(function() {
 		});
 	});
 
+	$('#submitstrix').click(function(){
+		document.querySelector('svg').innerHTML = "";
+		$('.downloader').addClass('visually-hidden');
+		$('.submit-text').addClass('visually-hidden');
+		$('ul.list-group').addClass('visually-hidden').html("");
+		$('.loading').removeClass('visually-hidden');
+		
+		let data = new FormData($('#strix-form')[0]);
+		
+		let assumptions = assumptionsEditor.getValue().trim();
+		let guarantees = guaranteesEditor.getValue().trim();
+		if (!guarantees) {
+			$("#image-container").text("Guarantees not specified");
+			return;
+		}
+
+		formula = "";
+		if (assumptions) {
+			formula += make_formula(assumptions);
+			formula += " -> ";
+		}
+		formula += make_formula(guarantees);
+
+		data.append('formula', formula.trim());
+
+		let inputs = inputsEditor.getValue().trim();
+		let outputs = outputsEditor.getValue().trim();
+		if (!inputs && !outputs) {
+			$("#image-container").text("No input or output symbols specified")
+			return;
+		}
+		inputs = make_propositions(inputs);
+		outputs = make_propositions(outputs);
+
+		data.set('inputs', inputs);
+		data.set('outputs', outputs);	
+		
+		$.ajax({
+			type: 'POST',
+			url: '/strix',
+			enctype: 'multipart/form-data',
+			processData: false,
+			contentType: false,
+			cache: false,
+			data: data, 
+			success: function(data) {
+				$('.downloader').removeClass('visually-hidden');
+				$('.submit-text').removeClass('visually-hidden');
+				$('.loading').addClass('visually-hidden');
+				document.querySelector('svg').innerHTML = data.img;
+				$('.figure .svg svg').attr('height', $('.figure .svg').attr('height'));
+				$('.figure-caption').html("");
+				let ul = $('ul.list-group');
+				ul.removeClass('visually-hidden');
+				data.traces.forEach((item) => {
+					ul.append(`<li class="list-group-item">${item.join('.')}</li>`);
+				});
+			}
+		});
+	});
+
 	$('#SimpleArbiter2').click(() => {setData('SimpleArbiter2')});
 	$('#SimpleArbiter3').click(() => {setData('SimpleArbiter3')});
+	$('#LiftFloor3').click(() => {setData('LiftFloor3')});
 });
