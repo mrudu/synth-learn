@@ -133,7 +133,7 @@ class UCB(object):
 			print(antichain_vector)
 			self.antichain_heads.append(antichain_vector)
 		if len(antichain_lines) == 0:
-			self.antichain_heads.append([0])
+			self.antichain_heads.append([0]*self.ucb.num_states())
 		return True
 
 	def get_bdd_propositions(self, atomic_propositions):
@@ -158,24 +158,18 @@ class UCB(object):
 
 		return bdd_list
 	
-	def get_transition_state(self, state_vector, edge_formula):
-		dst_state_vector = []
+	def get_transition_state(self, state_vector, edge_label):
+		dst_state_vector = [-1]*self.num_states
 		for state in range(self.num_states):
-			dst_state_possibilities = []
-			for from_state in range(self.num_states):
-				if state_vector[from_state] == -1:
-					continue
-				for edge in self.ucb.out(from_state):
-					if edge.dst == state and (edge.cond & edge_formula != buddy.bddfalse):
-						dst_state_possibilities.append(min(self.k+1, 
-						(state_vector[from_state] + 
-							(1 if (self.ucb.state_is_accepting(state))
-							else 0))
-						))
-			if len(dst_state_possibilities) == 0:
-				dst_state_vector.append(-1)
+			if state_vector[state] == -1:
 				continue
-			dst_state_vector.append(max(dst_state_possibilities))
+			for edge in self.ucb.out(state):
+				if (edge.cond & edge_label != buddy.bddfalse):
+					dst_state_vector[edge.dst] = max(
+						dst_state_vector[edge.dst], 
+						(state_vector[state] + 
+							(1 if (self.ucb.state_is_accepting(edge.dst))
+							else 0)))
 		return dst_state_vector
 
 	def is_safe(self, state_vector):
