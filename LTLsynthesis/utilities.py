@@ -3,6 +3,7 @@ from aalpy.automata import MealyState, MealyMachine
 import buddy
 import itertools
 import LTLsynthesis.algorithm
+import time
 
 logger = logging.getLogger('algo-logger')
 
@@ -36,6 +37,7 @@ def initialize_counting_function(mealy, UCBWrapper):
 	mealy.initial_state.counting_function[UCBWrapper.ucb.get_init_state_number()] = 0
 
 def checkCFSafety(mealy: MealyMachine):
+	ts = time.time()
 	UCBWrapper = LTLsynthesis.algorithm.UCBWrapper
 	# Checking CF Safety of the new Mealy Machine
 	if not UCBWrapper.is_safe(mealy.initial_state.counting_function):
@@ -51,40 +53,34 @@ def checkCFSafety(mealy: MealyMachine):
 		state, i = edges_to_visit[0]
 		target_state = state.transitions[i]
 		edges_to_visit = edges_to_visit[1:]
-		logger.debug("Exploring edge: {} + {}/{} -> {}".format(state.state_id, i, state.output_fun[i], target_state.state_id))
 		f1 = state.counting_function
 		f2 = target_state.counting_function
-
-
-		# logger.debug("Origin state CF: " + str(f1))
-		# logger.debug("Transition state CF: " + str(f2))
 
 		i_bdd = str_to_bdd(i, UCBWrapper.ucb)
 		o_bdd = str_to_bdd(state.output_fun[i], UCBWrapper.ucb)
 		
 		f_ = lowestUpperBound(UCBWrapper.get_transition_state(f1, 
 			i_bdd & o_bdd), f2)
-		# logger.debug("Lowest Upper Bound: " + str(f_))
 		if not UCBWrapper.is_safe(f_):
+			logger.debug("checking safety took {} seconds".format(time.time()-ts))
 			return False
 		if contains(f2, f_) and f_ != f2:
-			# logger.debug("Target state reset")
 			target_state.counting_function = f_;
 			for j in target_state.transitions.keys():
 				edges_to_visit.append([target_state, j])
-		# else:
-			# logger.debug("Target state remains")
+	logger.debug("Checking safety took {} seconds".format(time.time()-ts))
 	return True
 
 def get_state_from_id(state_id, state_list):
 	for state in state_list:
-		stateMatches = True
-		for i in range(len(state_id)):
-			if state.state_id[i] != state_id[i]:
-				stateMatches = False
-				break
-		if stateMatches:
+		if state.state_id == state_id:
 			return state
+	return None
+
+def get_index_from_id(state_id, state_list):
+	for i, x in enumerate(state_list):
+		if x.state_id == state_id:
+			return i
 	return None
 
 def bdd_to_str(bdd_arg):

@@ -2,8 +2,8 @@ from CustomAALpy.FileHandler import visualize_automaton, save_automaton_to_file,
 import logging
 from flask import session
 from functools import reduce
-from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, trace_to_int_function, checkCFSafety, expand_traces
-from LTLsynthesis.mealyMachineBuilder import get_compatible_nodes, isCrossProductCompatible, merge_compatible_nodes
+from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, trace_to_int_function, checkCFSafety, expand_traces, sort_merge_cand_by_min_cf
+from LTLsynthesis.mealyMachineBuilder import isCrossProductCompatible, generalization_algorithm
 from LTLsynthesis.completeAlgo import complete_mealy_machine
 from LTLsynthesis.utilities import *
 from LTLsynthesis.UCBBuilder import UCB
@@ -17,13 +17,6 @@ def generated_prefixes(traces):
 			prefixes.append(trace[0:(i+2)])
 			logger.debug("Extended trace: " + str(trace[0:(i+2)]))
 	return list(set(list(map(lambda trace: '.'.join(trace), prefixes))))
-
-def generalization_algorithm(traces, LTL_formula, merging_strategy, I, O):
-	node_queue = [mealy_machine.initial_state]
-	visited_nodes = []
-	while node_queue:
-		current_node = node_queue.pop(0)
-		visited_nodes.append(current_node)
 
 
 def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):	
@@ -112,29 +105,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	### STEP 2 ###
 	# Merge compatible nodes
 	logger.info("Merging compatible nodes in prefix tree...")
-	pairs = get_compatible_nodes(mealy_machine)
-	exclude_pairs = []
-	count = 1
-	while len(pairs) > 0:
-		pair = pairs[0]
-		logger.debug("Attempting to merge nodes: " + pair[0].state_id + ", " + pair[1].state_id)
-		if is_excluded(pair, exclude_pairs):
-			logger.debug("Pair excluded. Moving on...")
-			pairs = pairs[1:]
-			continue
-		mealy_machine, exclude_pairs, isMerged = merge_compatible_nodes(
-			pair, exclude_pairs, mealy_machine, UCBWrapper)
-		pairs = get_compatible_nodes(mealy_machine)
-		if not isMerged:
-			logger.debug("Merge unsuccessful. Moving on...")
-			pairs = pairs[count:]
-			count += 1
-		else:
-			logger.debug("Merge successful.")
-			logger.debug("Next in line:")
-			for pair in pairs:
-				logger.debug("[{}, {}]".format(pair[0].state_id, pair[1].state_id))
-			count = 1
+	mealy_machine = generalization_algorithm(mealy_machine, sort_merge_cand_by_min_cf, UCBWrapper)
 
 	### STEP 2.5 ###
 	# Mark nodes in "pre-machine"
