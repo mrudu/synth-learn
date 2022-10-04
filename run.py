@@ -105,7 +105,8 @@ def execute_algorithm(data, target_file):
     
     traces = data['traces']
     traces = traces.split('\n')
-    traces = list(map(lambda x: x.split('.'), traces))
+
+    traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
     
     if (len(target_file.filename) > 0) and (allowed_file(target_file.filename)):
         target_filename = "static/temp_model_files/TargetModel_{}.dot".format(session['number'])
