@@ -3,17 +3,22 @@ from aalpy.automata import MealyState, MealyMachine
 import buddy
 import itertools
 import LTLsynthesis.algorithm
-import time
+import time, re
 
-logger = logging.getLogger('algo-logger')
+logger = logging.getLogger('misc-logger')
 
 
+def trace_to_int_function(trace, ordered_inputs):
+	logger.debug("Trace to int function: " + str(trace))
+	input_filtered_trace = list(filter(
+		lambda proposition: proposition in ordered_inputs, trace))
 
-def check_to_continue():
-	answer = input("Are you sure you wish to continue? (y/Y for yes): ")
-	return (answer in "yY")
+	if len(input_filtered_trace) == 0:
+		return 0
+	return int(''.join(map(lambda input_proposition: str(
+		ordered_inputs.index(input_proposition)+1),input_filtered_trace)))
 
-def print_log(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper):
+def print_data(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper):
 	print(''.join(['-']*20))
 	print("DATA: ")
 	if target_machine is not None:
@@ -122,6 +127,11 @@ def lowestUpperBound(vector_1, vector_2):
 			vector.append(vector_2[i])
 	return vector
 
+def mark_nodes(mealy_machine):
+	for state in mealy_machine.states:
+		state.special_node = True
+		state.premachine_transitions = list(state.transitions.keys())
+
 def cleaner_display(mealy_machine, ucb):
 	for state in mealy_machine.states:
 		grouped_transitions = {}
@@ -150,6 +160,27 @@ def cleaner_display(mealy_machine, ucb):
 			if i in state.transitions.keys():
 				del state.transitions[i]
 
+def sort_merge_cand_by_min_cf(node_pair_1, node_pair_2):
+	node_1, node_2 = node_pair_1
+	node_3, node_4 = node_pair_2
+
+	if node_1 == node_3:
+		return sort_counting_functions(node_2.counting_function, node_4.counting_function)
+	logger.debug("Traces coming from sort merge cand: {} and {} where {} and {} are original".format(
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'),
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_3.state_id).split('.'),
+		node_1.state_id, node_3.state_id))
+	node_1_id = trace_to_int_function(filter(lambda x: len(x) > 0, 
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.')), node_1.ordered_inputs)
+	node_3_id = trace_to_int_function(filter(lambda x: len(x) > 0,
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_3.state_id).split('.')), node_3.ordered_inputs)
+	if node_1_id == node_3_id:
+		logger.error("What is happening?")
+		return sort_counting_functions(node_2.counting_function, node_4.counting_function)
+	elif node_1_id < node_3_id:
+		return -1
+	else:
+		return 1
 
 def is_excluded(pair, exclude_pairs):
 	pair1 = '{}.{}'.format(pair[0].state_id, pair[1].state_id)

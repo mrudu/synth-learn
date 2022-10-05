@@ -3,21 +3,9 @@ from LTLsynthesis.utilities import *
 import LTLsynthesis.algorithm
 import re
 
-logger = logging.getLogger("algo-logger")
+logger = logging.getLogger("prefix-tree-logger")
 
-def trace_to_int_function(trace):
-	logger.debug("Trace to int function: " + str(trace))
-	ordered_inputs = LTLsynthesis.algorithm.ordered_inputs
-	input_filtered_trace = list(filter(
-		lambda proposition: proposition in ordered_inputs, trace))
-
-	if len(input_filtered_trace) == 0:
-		return 0
-	return int(''.join(map(lambda input_proposition: str(
-		ordered_inputs.index(input_proposition)+1),input_filtered_trace)))
-
-
-def expand_traces(traces):
+def expand_symbolic_traces(traces):
 	new_traces = []
 	for trace in traces:
 		new_traces.extend(expand_trace(trace))
@@ -41,24 +29,48 @@ def expand_trace(trace):
 		expanded_traces = new_traces
 	return expanded_traces
 
-def build_prefix_tree(words):
+def generated_prefixes(traces):
+	prefixes = []
+	for trace in traces:
+		for i in range(0, len(trace)-1, 2):
+			prefixes.append(trace[0:(i+2)])
+			logger.debug("Extended trace: " + str(trace[0:(i+2)]))
+	return list(set(list(map(lambda trace: '.'.join(trace), prefixes))))
+
+def build_prefix_tree(traces):
+	# BDD inputs
+	bdd_inputs = LTLsynthesis.algorithm.bdd_inputs
+	# Expanding symbolic traces
+	traces = expand_symbolic_traces(traces)
+	# Generating prefix to make traces prefix-complete 
+	traces = generated_prefixes(traces)
+	# Sorting traces by input
+	traces = list(map(lambda trace: trace.split('.'), traces))
+	ordered_inputs = list(map(lambda prop: bdd_to_str(prop), bdd_inputs))
+	traces = sorted(traces, key=lambda trace: trace_to_int_function(trace, ordered_inputs))
+	
+	# Building the prefix tree
 	root = MealyState('()')
-	root.level = 0
+	# rank marks the position of the node in the prefix tree (BFS)
+	root.rank = 0
+	# ordered list of inputs
+	root.ordered_inputs = ordered_inputs
+	
 	list_nodes = [root]
-	for word in words:
+	for trace in traces:
 		current_node = root
-		for i in range(0, len(word)-1, 2):
-			if word[i] in current_node.transitions.keys():
-				current_node = current_node.transitions[word[i]]
+		for i in range(0, len(trace)-1, 2):
+			if trace[i] in current_node.transitions.keys():
+				current_node = current_node.transitions[trace[i]]
 			else:
 				new_node = MealyState(current_node.state_id + \
-					"({}.{})".format(word[i],word[i+1]))
-				current_node.transitions[word[i]] = new_node
-				current_node.output_fun[word[i]] = word[i+1]
+					"({}.{})".format(trace[i],trace[i+1]))
+				current_node.transitions[trace[i]] = new_node
+				current_node.output_fun[trace[i]] = trace[i+1]
 				current_node = new_node
-				new_node.level = len(list_nodes)
+				new_node.rank = len(list_nodes)
+				new_node.ordered_inputs = ordered_inputs
 				list_nodes.append(new_node)
-		current_node.isEndOfWord = True
 	mealyTree = MealyMachine(root, list_nodes)
 	return mealyTree
 
@@ -66,32 +78,14 @@ def sort_nodes_by_cf_diff(node_1, node_2):
 	return sum(list(abs(node_1.counting_function[i] - node_2.counting_function[i]) \
 		for i in range(len(node_1.counting_function))))*-1
 
-def sort_merge_cand_by_min_cf(node_pair_1, node_pair_2):
-	node_1, node_2 = node_pair_1
-	node_3, node_4 = node_pair_2
-
-	logger.debug("Traces coming from sort merge cand: {} and {} where {} and {} are original".format(
-		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'),
-		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_3.state_id).split('.'),
-		node_1.state_id, node_3.state_id))
-	node_1_id = trace_to_int_function(filter(lambda x: len(x) > 0, 
-		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.')))
-	node_3_id = trace_to_int_function(filter(lambda x: len(x) > 0,
-		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_3.state_id).split('.')))
-	if node_1_id == node_3_id:
-		return sort_counting_functions(node_2.counting_function, node_4.counting_function)
-	elif node_1_id < node_3_id:
-		return -1
-	else:
-		return 1
-
 def sort_nodes_by_traces(node_1, node_2):
 	logger.debug("Traces coming from sort nodes by traces: {} and {} where {} and {} are original".format(
 		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_1.state_id).split('.'),
 		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '', node_2.state_id).split('.'),
 		node_1.state_id, node_2.state_id))
-	node_1_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'))
-	node_2_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_2.state_id).split('.'))
+	node_1_id = trace_to_int_function(
+		re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_1.state_id).split('.'), node_1.ordered_inputs)
+	node_2_id = trace_to_int_function(re.sub('[^A-Za-z0-9\.\&\!\ ]+', '.', node_2.state_id).split('.'), node_1.ordered_inputs)
 
 	logger.debug("Traces converted to: {} and {}".format(node_1_id, node_2_id))
 
