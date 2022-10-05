@@ -19,39 +19,47 @@ app = Flask(__name__)
 app.secret_key = '97db21348530a03c3a836519c3d636b1f42d4fae7c98038349a9ea87a20dcc36'
 
 ALLOWED_EXTENSIONS = {'dot'}
+LOGGERS_LEVELS = [
+('misc-logger', logging.INFO),
+('prefix-tree-logger', logging.ERROR),
+('merge-phase-logger', logging.ERROR), 
+('completion-phase-logger', logging.ERROR)]
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-logger = logging.getLogger("algo-logger")
-logger.setLevel(logging.DEBUG)
+def setup_logging(name, level):
+    # create formatter
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s - %(message)s')
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
 
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
 
-# create formatter
-formatter = logging.Formatter('%(levelname)s - %(message)s')
+    # add formatter to ch
+    ch.setFormatter(formatter)
 
-# add formatter to ch
-ch.setFormatter(formatter)
+    # add ch to logger
+    logger.addHandler(ch)
 
-# add ch to logger
-logger.addHandler(ch)
+for name, level in LOGGERS_LEVELS:
+    setup_logging(name, level)
 
 def parse_json(file_name, new_traces = [], k=1):
-	with open('examples/' + file_name + ".json", "r") as read_file:
-	    data = json.load(read_file)
-	LTL_formula = "((" + ') & ('.join(data['assumptions']) + "))->((" + ') & ('.join(data['guarantees']) + "))"
-	if len(new_traces) == 0:
-		traces = data['traces']
-		traces = list(map(lambda trace: trace.split('.'), traces))
-	else:
-		traces = copy.deepcopy(new_traces)
-	m = build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
-	learning(m)
+    with open('examples/' + file_name + ".json", "r") as read_file:
+        data = json.load(read_file)
+    LTL_formula = "((" + ') & ('.join(data['assumptions']) + "))->((" + ') & ('.join(data['guarantees']) + "))"
+    if len(new_traces) == 0:
+        traces = data['traces']
+        traces = list(map(lambda trace: trace.split('.'), traces))
+    else:
+        traces = copy.deepcopy(new_traces)
+    m = build_mealy(LTL_formula, data['input_atomic_propositions'], data['output_atomic_propositions'], traces, file_name, data['target'], k)
+    learning(m)
 
 @app.route('/', methods=['GET', 'POST'])
 def execute():

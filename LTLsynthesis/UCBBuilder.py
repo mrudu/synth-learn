@@ -2,10 +2,10 @@ import spot
 import buddy
 import subprocess
 import math
-from LTLsynthesis.utilities import contains, check_to_continue
+from LTLsynthesis.utilities import contains
 import logging
 
-logger = logging.getLogger('algo-logger')
+logger = logging.getLogger('misc-logger')
 
 def build_strix(LTL_formula, I, O):
 	src_file = "/Users/mrudula/Downloads/strix"
@@ -37,10 +37,7 @@ def build_UCB(LTL_formula, I, O, k=2, limit=10):
 	UCBWrapper = UCB(k, LTL_formula, I, O)
 	if UCBWrapper.ucb is None:
 		if (k+1 > limit):
-			if check_to_continue():
-				limit = limit*1.5
-			else:
-				return None
+			limit = limit*1.5
 		return build_UCB(LTL_formula, I, O, k+1, limit)
 	logger.info("LTL Specification is safe for k=" + str(k))
 	return UCBWrapper, k

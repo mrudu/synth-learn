@@ -3,31 +3,33 @@ from LTLsynthesis.utilities import *
 from LTLsynthesis.prefixTreeBuilder import *
 import copy, functools, logging
 
-logger = logging.getLogger("algo-logger")
+logger = logging.getLogger("misc-logger")
 
 def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 	# Building Cross Product
 	ts = time.time()
 
 	root = (m1.initial_state, m2.initial_state)
-	state_queue = [root]
+	state_queue = [(root, [])]
 	visited_states = set()
 	while len(state_queue) > 0:
-		state = state_queue[0]
+		state, trace = state_queue[0]
 		state_queue = state_queue[1:]
 		s1, s2 = state
 		visited_states.add(s1.state_id + " & " + s2.state_id)
 		for i in s1.transitions.keys():
 			if i in s2.transitions.keys():
+				trace_ = trace + [i, s1.output_fun[i]]
 				transition_state = (s1.transitions[i], s2.transitions[i])
 				s3, s4 = transition_state
 				if s3.state_id + " & " + s4.state_id not in visited_states:
 					if s1.output_fun[i] != s2.output_fun[i]:
 						logger.debug("Checking compatibilty takes: " + str(time.time() - ts))
-						return False
-				state_queue.append(transition_state)
+						logger.debug("Obtained counter-example: ", str(trace_))
+						return [False, trace_]
+				state_queue.append((transition_state, trace_))
 	logger.debug("Checking compatibilty takes : " + str(time.time() - ts))
-	return True
+	return [True, []]
 
 def generalization_algorithm(premealy_machine, merging_strategy, UCBWrapper):
 	states = sorted(premealy_machine.states, 
@@ -36,7 +38,7 @@ def generalization_algorithm(premealy_machine, merging_strategy, UCBWrapper):
 	i = 0
 	while i < len(states):
 		s = states[i]
-		logger.info("Checking state {}".format(s.state_id))
+		logger.debug("Checking state {}".format(s.state_id))
 		
 		merge_pairs = get_compatible_nodes(states, s, exclude_pairs)
 		merge_pairs = sorted(merge_pairs, key=functools.cmp_to_key(merging_strategy))
@@ -78,9 +80,11 @@ def get_compatible_nodes(states, s, exclude=[]):
 			continue
 		m1 = MealyMachine(s, states)
 		m2 = MealyMachine(s_, states)
-		isComp = isCrossProductCompatible(m1, m2)
+		isComp, cex = isCrossProductCompatible(m1, m2)
 		if isComp:
 			pair_nodes.append([s, s_])
+		else:
+			logger.info("Counter example for merge: " + ".".join(cex))
 	logger.debug("Returning {} pairs of potentially mergeable nodes".format(len(pair_nodes)))
 	# pair_nodes = sorted(pair_nodes, key=lambda x: sort_nodes_by_cf_diff(x[0], x[1]))
 	return pair_nodes

@@ -4,27 +4,27 @@ from LTLsynthesis.utilities import *
 from LTLsynthesis.completionUtilities import check_state_subsumed, check_state_mergeable, subsume_to_antichain_heads, subsume_to_antichain_head, sort_nodes, sort_list
 import logging
 
-logger = logging.getLogger('algo-logger')
+logger = logging.getLogger('completion-logger')
 
 def completionStrategy(candidate_nodes, m, i_bdd, mealy_machine, UCBWrapper, addSpuriousEdge=True):
 	# Checking if transition already exists
 	i_str = bdd_to_str(i_bdd)
-	logger.info("Checking potential hole {}, {}".format(m.state_id, i_str))
+	logger.debug("Checking potential hole {}, {}".format(m.state_id, i_str))
 	if i_str in m.transitions.keys():
 		next_state = m.transitions[i_str]
-		logger.info("Transition already exists: {} , {} -> {}. Not a hole!".format(
+		logger.debug("Transition already exists: {} , {} -> {}. Not a hole!".format(
 			m.state_id, i_str, next_state.state_id))
 		return next_state
 	
 	# Checking if there exists output where cf is subsumed by premachine state
-	logger.info("Checking if there exists output where cf is subsumed by premachine/newly created state state")
+	logger.debug("Checking if there exists output where cf is subsumed by premachine/newly created state state")
 	for state in candidate_nodes:
 		if check_state_subsumed(state, m, i_bdd, UCBWrapper):
 			return state
 
 	if addSpuriousEdge:
 		# Checking if spurious edge to premachine state is possible
-		logger.info("Checking if spurious edge to premachine state is possible")
+		logger.debug("Checking if spurious edge to premachine state is possible")
 		for state in candidate_nodes:
 			if check_state_mergeable(state, m, i_bdd, mealy_machine, UCBWrapper):
 				return state
@@ -62,7 +62,7 @@ def createNewState(m, i_bdd, minimize_controller, UCBWrapper):
 
 		logger.info("Creating new state with state id: " + next_state.state_id)
 		logger.debug("Counting function of transition: " + str(next_state.counting_function))
-		logger.info("Creating edge: {} + {}/{} -> {}".format(
+		logger.debug("Creating edge: {} + {}/{} -> {}".format(
 			m.state_id,
 			i_str,
 			o_str,
@@ -78,7 +78,7 @@ def complete_mealy_machine(mealy_machine, UCBWrapper, minimize_controller=False,
 	if minimize_controller and use_premachine_nodes:
 		subsume_to_antichain_heads(mealy_machine, UCBWrapper)
 	
-	logger.info("Creating lists of premachine nodes")
+	logger.debug("Creating lists of premachine nodes")
 	for state in mealy_machine.states:
 		if state.special_node:
 			premachine_nodes.append(state)
@@ -102,7 +102,7 @@ def complete_mealy_machine(mealy_machine, UCBWrapper, minimize_controller=False,
 		# initializing the transition state to None
 		next_state = None
 
-		logger.info("Checking state: " + str(current_state.state_id))
+		logger.debug("Checking state: " + str(current_state.state_id))
 
 		# checking for legitimate states (Maybe can be written better)
 		if current_state == None:
@@ -137,7 +137,7 @@ def complete_mealy_machine(mealy_machine, UCBWrapper, minimize_controller=False,
 					logger.warning("This mealy machine is unsuitable")
 					return None
 
-			logger.info("Will have to create a new state")
+			logger.debug("Will have to create a new state")
 			
 			next_state = createNewState(current_state, i_bdd, minimize_controller, UCBWrapper)
 

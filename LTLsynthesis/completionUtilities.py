@@ -1,7 +1,7 @@
 import logging
 from LTLsynthesis.utilities import bdd_to_str, contains, initialize_counting_function, checkCFSafety, sort_counting_functions
 
-logger = logging.getLogger('algo-logger')
+logger = logging.getLogger('completion-logger')
 
 def subsume_to_antichain_heads(mealy_machine, UCBWrapper):
 	for state in mealy_machine.states:
@@ -28,7 +28,7 @@ def check_state_subsumed(state, current_state, i_bdd, UCBWrapper):
 			logger.debug("CF subsumed by node..")
 			logger.debug("Counting function of transition: " + str(cf))
 			logger.debug("Counting function of next state: " + str(state.counting_function))
-			logger.info("Creating edge: {} + {}/{} -> {}".format(
+			logger.debug("Creating edge: {} + {}/{} -> {}".format(
 				current_state.state_id,
 				i_str,
 				o_str,
@@ -50,7 +50,7 @@ def check_state_mergeable(state, current_state, i_bdd, mealy_machine, UCBWrapper
 			logger.debug("Merging with node..")
 			logger.debug("Counting function of transition: " + str(cf))
 			logger.debug("Counting function of next state: " + str(state.counting_function))
-			logger.info("Creating edge: {} + {}/{} -> {}".format(
+			logger.debug("Creating edge: {} + {}/{} -> {}".format(
 				current_state.state_id,
 				i_str,
 				o_str,
