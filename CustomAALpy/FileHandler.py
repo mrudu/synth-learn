@@ -10,7 +10,7 @@ file_types = ['dot', 'png', 'svg', 'pdf', 'string']
 
 
 def _get_node(state):
-    if state.special_node:
+    if 'special_node' in state.__dict__.keys():
         return Node(state.state_id, fillcolor="#ff000075", color="black", label=state.state_id, style="filled")
     elif 'color' in state.__dict__.keys():
         return Node(state.state_id, fillcolor=state.color, color="white", label=state.state_id, style="filled")
