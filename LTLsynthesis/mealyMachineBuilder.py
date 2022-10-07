@@ -84,7 +84,7 @@ def get_compatible_nodes(states, s, exclude=[]):
 		if isComp:
 			pair_nodes.append([s, s_])
 		else:
-			logger.info("Counter example for merge: " + ".".join(cex))
+			logger.debug("Counter example for merge: " + ".".join(cex))
 	logger.debug("Returning {} pairs of potentially mergeable nodes".format(len(pair_nodes)))
 	# pair_nodes = sorted(pair_nodes, key=lambda x: sort_nodes_by_cf_diff(x[0], x[1]))
 	return pair_nodes

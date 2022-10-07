@@ -4,7 +4,7 @@ from LTLsynthesis.utilities import *
 from LTLsynthesis.completionUtilities import check_state_subsumed, check_state_mergeable, subsume_to_antichain_heads, subsume_to_antichain_head, sort_nodes, sort_list
 import logging
 
-logger = logging.getLogger('completion-logger')
+logger = logging.getLogger('completion-phase-logger')
 
 def completionStrategy(candidate_nodes, m, i_bdd, mealy_machine, UCBWrapper, addSpuriousEdge=True):
 	# Checking if transition already exists
@@ -28,7 +28,6 @@ def completionStrategy(candidate_nodes, m, i_bdd, mealy_machine, UCBWrapper, add
 		for state in candidate_nodes:
 			if check_state_mergeable(state, m, i_bdd, mealy_machine, UCBWrapper):
 				return state
-
 	return None
 
 def createNewState(m, i_bdd, minimize_controller, UCBWrapper):
@@ -60,7 +59,7 @@ def createNewState(m, i_bdd, minimize_controller, UCBWrapper):
 		if minimize_controller:
 			subsume_to_antichain_head(next_state, UCBWrapper)
 
-		logger.info("Creating new state with state id: " + next_state.state_id)
+		logger.debug("Creating new state with state id: " + next_state.state_id)
 		logger.debug("Counting function of transition: " + str(next_state.counting_function))
 		logger.debug("Creating edge: {} + {}/{} -> {}".format(
 			m.state_id,

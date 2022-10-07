@@ -26,15 +26,15 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 		k = k + 1
 		UCBWrapper = UCB(k, LTL_formula, I, O)
 	
-	logger.info("LTL Specification is safe for k=" + str(k))
+	logger.debug("LTL Specification is safe for k=" + str(k))
 	bdd_inputs = UCBWrapper.bdd_inputs
 	ucb = UCBWrapper.ucb
 
 	# Build Prefix Tree Mealy Machine
-	logger.info("Building Prefix Tree Mealy Machine...")
+	logger.info("Building Prefix Tree...")
 	mealy_machine = build_prefix_tree(traces)
 
-	logger.info("Prefix Tree Mealy Machine built")
+	logger.info("Prefix Tree Mealy built")
 
 	# Check if K is appropriate for traces
 	logger.debug("Checking if K is appropriate for traces")
@@ -48,33 +48,33 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 		logger.debug("Traces is unsafe for k=" + str(k))
 		UCBWrapper = UCB(k, LTL_formula, I, O)
 
+	logger.info("Choosing K as " + str(k))
+
 	# Loading the target machine if it exists
 	target_machine = None
 	if len(target) > 0:
-		logger.debug("Checking if K is appropriate for target machine")
 		target_machine = load_automaton_from_file(target)
-		save_mealy_machile(target_machine, "static/temp_model_files/TargetModel", ['svg', 'pdf'])
-
-	logger.info("Finally, chosen K as " + str(k))
 	
 	### STEP 2 ###
 	# Merge compatible nodes
-	logger.debug("Merging compatible nodes in prefix tree...")
+	logger.info("Phase 1: Merging compatible nodes in prefix tree...")
 	mealy_machine = generalization_algorithm(mealy_machine, sort_merge_cand_by_min_cf, UCBWrapper)
+	logger.info("Phase 1: Merge phase is complete")
 
 	### STEP 2.5 ###
 	# Mark nodes in "pre-machine"
 	mark_nodes(mealy_machine)
 
-	logger.debug("Pre-machine complete.")
+	logger.info("Phase 2: Completion Phase begins...")
 	num_premachine_nodes = len(mealy_machine.states)
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
+	logger.info("Phase 2: Completion Phase done")
 	if target_machine is not None:
 		isComp, cex = isCrossProductCompatible(target_machine, mealy_machine)
 		if not isComp:
-			logger.warning('Counter example: ' + ".".join(cex))
+			logger.info('Counter example: ' + ".".join(cex))
 			traces.append(cex)
 			logger.info("Traces: "+ str(traces))
 
@@ -83,10 +83,12 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 				I, 
 				O, traces, 
 				file_name, target, k)
-	
+	if target_machine is not None:
+		save_mealy_machile(target_machine, "static/temp_model_files/TargetModel", ['svg', 'pdf'])
 	save_mealy_machile(mealy_machine, "static/temp_model_files/LearnedModel", ['dot'])
 	cleaner_display(mealy_machine, UCBWrapper.ucb)
 	save_mealy_machile(mealy_machine, "static/temp_model_files/LearnedModel", ['svg', 'pdf'])
+	traces = shorten_traces(traces)
 	print_data(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper)
 	return mealy_machine, {'traces': traces, 'num_premachine_nodes': num_premachine_nodes, 'k': k}
 

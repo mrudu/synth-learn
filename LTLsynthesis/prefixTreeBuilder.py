@@ -53,6 +53,7 @@ def build_prefix_tree(traces):
 	root = MealyState('()')
 	# rank marks the position of the node in the prefix tree (BFS)
 	root.rank = 0
+	root.equivalent_states = {root.rank}
 	# ordered list of inputs
 	root.ordered_inputs = ordered_inputs
 	
@@ -69,6 +70,7 @@ def build_prefix_tree(traces):
 				current_node.output_fun[trace[i]] = trace[i+1]
 				current_node = new_node
 				new_node.rank = len(list_nodes)
+				new_node.equivalent_states = {new_node.rank}
 				new_node.ordered_inputs = ordered_inputs
 				list_nodes.append(new_node)
 	mealyTree = MealyMachine(root, list_nodes)
@@ -90,8 +92,13 @@ def sort_nodes_by_traces(node_1, node_2):
 	logger.debug("Traces converted to: {} and {}".format(node_1_id, node_2_id))
 
 	if node_1_id < node_2_id:
+		if node_1.rank > node_2.rank:
+			logger.warning("Hypothesis is wrong")
 		return -1
 	elif node_1_id == node_2_id:
+		logger.warning("Why is this happening?")
 		return 0
 	else:
+		if node_1.rank < node_2.rank:
+			logger.warning("Hypothesis is wrong")
 		return 1

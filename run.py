@@ -21,9 +21,9 @@ app.secret_key = '97db21348530a03c3a836519c3d636b1f42d4fae7c98038349a9ea87a20dcc
 ALLOWED_EXTENSIONS = {'dot'}
 LOGGERS_LEVELS = [
 ('misc-logger', logging.INFO),
-('prefix-tree-logger', logging.ERROR),
-('merge-phase-logger', logging.ERROR), 
-('completion-phase-logger', logging.ERROR)]
+('prefix-tree-logger', logging.INFO),
+('merge-phase-logger', logging.INFO), 
+('completion-phase-logger', logging.INFO)]
 
 def allowed_file(filename):
     return '.' in filename and \
