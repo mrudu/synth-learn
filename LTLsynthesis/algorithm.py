@@ -8,6 +8,8 @@ from LTLsynthesis.completion_phase import complete_mealy_machine
 from LTLsynthesis.utilities import *
 from LTLsynthesis.UCBBuilder import UCB
 
+import time
+
 logger = logging.getLogger("misc-logger")
 
 def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):	
@@ -19,6 +21,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	logger.debug("Checking if K is appropriate...")
 
 	logger.debug("Checking if K is appropriate for LTL")
+	ts = time.time()
 	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, I, O)
 	while UCBWrapper.ucb is None:
@@ -54,6 +57,16 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	target_machine = None
 	if len(target) > 0:
 		target_machine = load_automaton_from_file(target)
+		k_unsafe = True
+		while k_unsafe:
+			initialize_counting_function(target_machine, UCBWrapper)
+			if checkCFSafety(target_machine):
+				logger.info("Target is safe for k=" + str(k))
+				k_unsafe = False
+				break
+			k = k + 1
+			logger.info("Target is unsafe for k=" + str(k))
+			UCBWrapper = UCB(k, LTL_formula, I, O)
 	
 	### STEP 2 ###
 	# Merge compatible nodes
@@ -61,6 +74,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	mealy_machine = generalization_algorithm(mealy_machine, sort_merge_cand_by_min_cf, UCBWrapper)
 	logger.info("Phase 1: Merge phase is complete")
 
+	save_mealy_machile(mealy_machine, "static/temp_model_files/PreMachine", ['pdf'])
 	### STEP 2.5 ###
 	# Mark nodes in "pre-machine"
 	mark_nodes(mealy_machine)
@@ -70,6 +84,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	### STEP 3 ###
 	# Complete mealy machine
 	complete_mealy_machine(mealy_machine, UCBWrapper)
+	logger.info("Took {} seconds to complete.".format(time.time() - ts))
 	logger.info("Phase 2: Completion Phase done")
 	if target_machine is not None:
 		isComp, cex = isCrossProductCompatible(target_machine, mealy_machine)
