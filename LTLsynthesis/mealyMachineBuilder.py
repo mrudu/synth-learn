@@ -3,7 +3,7 @@ from LTLsynthesis.utilities import *
 from LTLsynthesis.prefixTreeBuilder import *
 import copy, functools, logging
 
-logger = logging.getLogger("misc-logger")
+logger = logging.getLogger("merge-phase-logger")
 
 def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 	# Building Cross Product
@@ -25,21 +25,26 @@ def isCrossProductCompatible(m1: MealyMachine, m2: MealyMachine):
 				if s3.state_id + " & " + s4.state_id not in visited_states:
 					if s1.output_fun[i] != s2.output_fun[i]:
 						logger.debug("Checking compatibilty takes: " + str(time.time() - ts))
-						logger.debug("Obtained counter-example: ", str(trace_))
+						logger.debug("Obtained counter-example: " + str(trace_))
 						return [False, trace_]
-				state_queue.append((transition_state, trace_))
+					state_queue.append((transition_state, trace_))
 	logger.debug("Checking compatibilty takes : " + str(time.time() - ts))
 	return [True, []]
 
 def generalization_algorithm(premealy_machine, merging_strategy, UCBWrapper):
-	states = sorted(premealy_machine.states, 
-		key=functools.cmp_to_key(sort_nodes_by_traces))
+	states = premealy_machine.states
+	states.sort(key=lambda s: s.rank)
+
+	rank_state_dict = {}
+	for s in states:
+		rank_state_dict[s.rank] = s.rank
 	exclude_pairs = []
 	i = 0
-	while i < len(states):
-		s = states[i]
-		logger.debug("Checking state {}".format(s.state_id))
-		
+	for i in range(len(states)):
+		s = get_state_from_rank(rank_state_dict[i], states)
+		logger.debug("Checking state {} with rank {}".format(
+			s.state_id, s.rank))
+		logger.debug("Rant state dict: " + str(rank_state_dict))
 		merge_pairs = get_compatible_nodes(states, s, exclude_pairs)
 		merge_pairs = sorted(merge_pairs, key=functools.cmp_to_key(merging_strategy))
 		
@@ -49,34 +54,35 @@ def generalization_algorithm(premealy_machine, merging_strategy, UCBWrapper):
 			if is_excluded(merge_pair, exclude_pairs):
 				continue
 			ts = time.time()
-			premealy_machine, exclude_pairs, isMerged = merge_compatible_nodes(
-			merge_pair, exclude_pairs, premealy_machine, UCBWrapper)
+			premealy_machine, exclude_pairs, rank_state_dict, isMerged = merge_compatible_nodes(
+				merge_pair, exclude_pairs, 
+				rank_state_dict, premealy_machine, UCBWrapper)
 			logger.debug("Merge took {} time".format(time.time()-ts))
 			if isMerged:
-				logger.debug("Merged {} into {}".format(merge_pair[0].state_id, 
-					merge_pair[1].state_id))
-				states = sorted(premealy_machine.states,
-					key=functools.cmp_to_key(sort_nodes_by_traces))
+				logger.debug("Merged {} into {}".format(merge_pair[1].state_id, 
+					merge_pair[0].state_id))
+				logger.debug("Merged {} into {}".format(merge_pair[1].rank, 
+					merge_pair[0].rank))
+				states = premealy_machine.states
+				states.sort(key=lambda s: s.rank)
 				logger.debug("# of states: {}".format(len(states)))
 				break
 			logger.debug("Merge {} and {} failed".format(merge_pair[0].state_id,
 				merge_pair[1].state_id))
-		if get_index_from_id(s.state_id, states) is None:
-			print('error')
-			i = i + 1
-		else:
-			i = get_index_from_id(s.state_id, states) + 1
+			logger.debug("Merge {} and {} failed".format(merge_pair[0].rank,
+				merge_pair[1].rank))
 	return premealy_machine
 
 def get_compatible_nodes(states, s, exclude=[]):
 	pair_nodes = []
 	for s_ in states:
+		logger.debug("Checking compatibilty with " + s.state_id)
 		if s == s_:
-			break
-		if s.state_id == s_.state_id:
-			break
+			continue
 		if is_excluded([s, s_], exclude):
 			logger.debug("Excluding {} and {}".format(s, s_))
+			continue
+		if s.rank < min(s_.equivalent_states):
 			continue
 		m1 = MealyMachine(s, states)
 		m2 = MealyMachine(s_, states)
@@ -89,47 +95,69 @@ def get_compatible_nodes(states, s, exclude=[]):
 	# pair_nodes = sorted(pair_nodes, key=lambda x: sort_nodes_by_cf_diff(x[0], x[1]))
 	return pair_nodes
 
-def merge_compatible_nodes(pair, exclude_pairs, mealy_machine, 
-	UCBWrapper):
+def merge_compatible_nodes(pair, exclude_pairs, rank_state_dict,
+	mealy_machine, UCBWrapper):
 	old_mealy_machine = copy.deepcopy(mealy_machine)
+	old_rank_state_dict = copy.deepcopy(rank_state_dict)
 	merged = False
-	pair[0] = get_state_from_id(pair[0].state_id, mealy_machine.states)
-	pair[1] = get_state_from_id(pair[1].state_id, mealy_machine.states)
-	mealy_machine = mergeAndPropogate(pair[0], pair[1], mealy_machine)
+	pair[0] = get_state_from_rank(
+		rank_state_dict[pair[0].rank],
+		mealy_machine.states)
+	pair[1] = get_state_from_rank(
+		rank_state_dict[pair[1].rank],
+		mealy_machine.states)
+	mealy_machine = mergeAndPropogate(
+		pair[0], pair[1], rank_state_dict, mealy_machine)
 	if mealy_machine is None:
+		rank_state_dict = old_rank_state_dict
 		mealy_machine = old_mealy_machine
 		exclude_pairs.append(pair)
 	else:
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if not checkCFSafety(mealy_machine):
+			logger.debug
 			mealy_machine = old_mealy_machine
+			rank_state_dict = old_rank_state_dict
 			exclude_pairs.append(pair)
 		else:
 			exclude_pairs = []
 			merged = True
-	return [mealy_machine, exclude_pairs, merged]
+	return [mealy_machine, exclude_pairs, rank_state_dict, merged]
 
-def mergeAndPropogate(s1: MealyState, s2: MealyState, mealy_machine: MealyMachine):
-	propogate_queue = [[s1, s2]]
+def mergeAndPropogate(m1: MealyState, m2: MealyState,
+	rank_state_dict, mealy_machine: MealyMachine):
+	propogate_queue = [[m1, m2]]
 	while len(propogate_queue) > 0:
 		s1, s2 = propogate_queue[0]
 		logger.debug("Commence merge of {} and {}:".format(s1.state_id, s2.state_id))
+		logger.debug("Commence merge of {} and {}:".format(s1.rank, s2.rank))
 		propogate_queue = propogate_queue[1:]
-		if s1 == s2:
-			continue
 		while s1 not in mealy_machine.states:
 			logger.debug(s1.state_id + " has been deleted.")
-			s1 = s1.mergedFrom
+			logger.debug(str(s1.rank )+ " has been deleted.")
+			s1 = get_state_from_rank(rank_state_dict[s1.rank],
+				mealy_machine.states)
 		while s2 not in mealy_machine.states:
 			logger.debug(s2.state_id + " has been deleted.")
-			s2 = s2.mergedFrom
+			logger.debug(str(s2.rank) + " has been deleted.")
+			s2 = get_state_from_rank(rank_state_dict[s2.rank],
+				mealy_machine.states)
+		if s1.rank == s2.rank:
+			logger.debug("Merge of the same states should be skipped")
+			continue
+		logger.debug("Commence merge of {} and {}:".format(s1.rank, s2.rank))
 		mergedStuff = mergeOperation(s1, s2, mealy_machine)
 		if mergedStuff is not None:
 			logger.debug("Adding to queue:")
 			for pair in mergedStuff:
 				logger.debug("[{}, {}]".format(pair[0].state_id, pair[1].state_id))
+				logger.debug("[{}, {}]".format(pair[0].rank, pair[1].rank))
 			propogate_queue.extend(mergedStuff)
-			s2.mergedFrom = s1
+			rank_state_dict[s2.rank] = s1.rank
+			equivalent_states = s1.equivalent_states.union(s2.equivalent_states)
+			s1.equivalent_states = equivalent_states
+			s2.equivalent_states = equivalent_states
+			logger.debug("Deleting node " + str(s2.rank))
 			mealy_machine.states.remove(s2)
 		else:
 			logger.debug("Merge failed! Exiting..")

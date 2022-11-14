@@ -51,11 +51,12 @@ def checkCFSafety(mealy: MealyMachine):
 	edges_to_visit = []
 
 	for i in mealy.initial_state.transitions.keys():
-		edges_to_visit.append([mealy.initial_state, i])
+		edges_to_visit.append([mealy.initial_state, i, 
+			i + "." + mealy.initial_state.output_fun[i]])
 	
 	count = 0
 	while len(edges_to_visit) > 0:
-		state, i = edges_to_visit[0]
+		state, i, trace = edges_to_visit[0]
 		target_state = state.transitions[i]
 		edges_to_visit = edges_to_visit[1:]
 		f1 = state.counting_function
@@ -68,17 +69,27 @@ def checkCFSafety(mealy: MealyMachine):
 			i_bdd & o_bdd), f2)
 		if not UCBWrapper.is_safe(f_):
 			logger.debug("checking safety took {} seconds".format(time.time()-ts))
+			logger.info("Unsafe trace" + trace)
 			return False
 		if contains(f2, f_) and f_ != f2:
 			target_state.counting_function = f_;
 			for j in target_state.transitions.keys():
-				edges_to_visit.append([target_state, j])
+				edges_to_visit.append([target_state, j, 
+					"{}.{}.{}".format(trace, j, target_state.output_fun[j])])
 	logger.debug("Checking safety took {} seconds".format(time.time()-ts))
 	return True
 
 def get_state_from_id(state_id, state_list):
 	for state in state_list:
 		if state.state_id == state_id:
+			return state
+	return None
+
+def get_state_from_rank(rank, state_list):
+	for state in state_list:
+		logger.debug("State rank in states: " + str(state.rank))
+		logger.debug("Equivalent rank states: " + str(state.equivalent_states))
+		if rank in state.equivalent_states:
 			return state
 	return None
 
@@ -159,6 +170,22 @@ def cleaner_display(mealy_machine, ucb):
 		for i in to_remove:
 			if i in state.transitions.keys():
 				del state.transitions[i]
+
+def shorten_traces(traces):
+	traces = list(map(lambda trace: ".".join(trace), traces))
+	traces.sort(key=lambda t: len(t))
+	shortened_traces = []
+	n = len(traces)
+	for i in range(n):
+		trace = traces[i]
+		shouldAdd = True
+		for j in range(i+1, n):
+			if traces[j].startswith(trace):
+				shouldAdd = False
+				break
+		if shouldAdd:
+			shortened_traces.append(trace.split('.'))
+	return shortened_traces
 
 def sort_merge_cand_by_min_cf(node_pair_1, node_pair_2):
 	node_1, node_2 = node_pair_1
