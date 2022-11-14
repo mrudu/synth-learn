@@ -23,7 +23,7 @@ LOGGERS_LEVELS = [
 ('misc-logger', logging.INFO),
 ('prefix-tree-logger', logging.INFO),
 ('merge-phase-logger', logging.INFO), 
-('completion-phase-logger', logging.INFO)]
+('completion-phase-logger', logging.DEBUG)]
 
 def allowed_file(filename):
     return '.' in filename and \
