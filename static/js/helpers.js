@@ -1,4 +1,5 @@
 $(document).ready(function() {
+	let count=0
 	let exampleReference = {
 		'SimpleArbiter2': {
 			'assumptions': [],
@@ -19,20 +20,40 @@ $(document).ready(function() {
 			'traces': ['p & q & r.gp & !gq & !gr']
 		},
 		'LiftFloor3': {
-			'assumptions': [],
+			'assumptions': [
+				'G(b0 -> (b0 W (f0 & serve)))',
+				'G(b1 -> (b1 W (f1 & serve)))'],
 			'guarantees' :
-				["G (b0 -> F (at0))",
-				"G (b1 -> F (at1))",
-				"G (b2 -> F (at2))",
-				"G ((!at0 & !at1 & at2) | (at0 & !at1 & !at2) | (!at0 & at1 & !at2))",
-				"G (at0 -> X(at0 | at1))",
-				"G (at1 -> X(at0 | at1 | at2))",
-				"G (at2 -> X(at1 | at2))"],
-			'inputs': 'b0, b1, b2, b3',
-			'outputs': 'at0, at1, at2',
-			'traces': ['!b0 & !b1 & !b2.at0 & !at1 & !at2',
-			'b2.at0 & !at1 & !at2.b0 & b1 & !b2.!at0 & at1 & !at2.b0 & b1 & b2.!at0 & !at1 & at2',
-			'b1 & !b2.at0 & !at1 & !at2.!b0 & b1 & !b2.!at0 & at1 & !at2.!b0 & !b1 & !b2.!at0 & at1 & !at2']
+				['G (b0 -> F (f0 & serve))',
+				'G (b1 -> F (f1 & serve))',
+				'G ((f0 & !f1) | (!f0 & f1))',
+				'G ((f0 & serve) -> X (!f1))',
+				'G ((f1 & serve) -> X (!f0))',
+				'f0'],
+			'inputs': 'b0, b1',
+			'outputs': 'f0, f1, serve',
+			'traces': [
+				'!b0 & b1.f0 & !f1 & !serve.!b0 & b1.!f0 & f1 & serve.!b0 & !b1.!f0 & f1 & !serve.!b0 & !b1.!f0 & f1 & !serve',
+				'!b0 & !b1.f0 & !f1 & !serve.!b0 & !b1.f0 & !f1 & !serve']
+		},
+		'PrioritizedArbiter': {
+			'assumptions': ['G F !m'],
+			'guarantees' : ['G (p1 -> F (g1))',
+				'G (p2 -> F (g2))',
+				'G (m -> gm)',
+				'G (g1 -> (!g2 & !gm))',
+				'G (g2 -> (!g1 & !gm))',
+				'G (gm -> (!g1 & !g2))'],
+			'inputs': 'p1, p2, m',
+			'outputs': 'g1, g2, gm',
+			'traces': ["!m & !p1 & !p2.!g1 & !g2 & !gm",
+			"m & p1 & p2.!g1 & !g2 & gm.!m & !p1 & !p2.g1 & !g2 & !gm",
+			"!m & p1 & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
+			"!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
+			"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
+			"m & p1 & !p2.!g1 & !g2 & gm.!m & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
+			"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1 & p2.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
+			"m & p1 & !p2.!g1 & !g2 & gm.!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm"]
 		}
 	}
 
@@ -155,7 +176,7 @@ $(document).ready(function() {
 	});
 
 	$('#submitstrix').click(function(){
-		document.querySelector('svg').innerHTML = "";
+		document.getElementById('img').src = "";
 		$('.downloader').addClass('visually-hidden');
 		$('.submit-text').addClass('visually-hidden');
 		$('ul.list-group').addClass('visually-hidden').html("");
@@ -200,17 +221,12 @@ $(document).ready(function() {
 			cache: false,
 			data: data, 
 			success: function(data) {
+				count += 1
 				$('.downloader').removeClass('visually-hidden');
 				$('.submit-text').removeClass('visually-hidden');
 				$('.loading').addClass('visually-hidden');
-				document.querySelector('svg').innerHTML = data.img;
-				$('.figure .svg svg').attr('height', $('.figure .svg').attr('height'));
+				document.getElementById('img').src = "/static/temp_model_files/StrixModel.svg?count=" + count;
 				$('.figure-caption').html("");
-				let ul = $('ul.list-group');
-				ul.removeClass('visually-hidden');
-				data.traces.forEach((item) => {
-					ul.append(`<li class="list-group-item">${item.join('.')}</li>`);
-				});
 			}
 		});
 	});

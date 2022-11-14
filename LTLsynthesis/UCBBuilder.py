@@ -9,7 +9,7 @@ logger = logging.getLogger('misc-logger')
 
 def build_strix(LTL_formula, I, O):
 	src_file = "/Users/mrudula/Downloads/strix"
-	command = "{} -f '{}' --ins=\"{}\" --outs=\"{}\" --minimize".format(
+	command = "{} -f '{}' --ins=\"{}\" --outs=\"{}\" -m both".format(
 			src_file,
 			LTL_formula, 
 			",".join(I), 
@@ -26,6 +26,8 @@ def build_strix(LTL_formula, I, O):
 
 		for a in spot.automata('\n'.join(automata_lines[1:])):
 			ucb = a
+		with open("static/temp_model_files/StrixModel.svg", 'w') as f:
+			f.write(a.show().data)
 		return a.show().data
 	except Exception as e:
 		print(e)
@@ -70,65 +72,47 @@ class UCB(object):
 		src_file = "/Users/mrudula/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
 		antichain_lines = []
 		automata_lines = []
-		state_reassignment = []
-		init_state = 0
 		command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
 			src_file,
 			psi, 
 			",".join(inputs), 
 			",".join(outputs), 
 			self.k)
-		command = "multipass exec foobar -- " + command
+		command = "multipass exec bar -- " + command
 		logger.debug(command)
 		try:
 			op = subprocess.run(command, shell=True, capture_output=True)
 			captureUCB = False
-			captureStateReassignment = False
 			captureAntichain = False
-			captureInitialState = False
 			
 			for line in op.stdout.splitlines():
 				l = line.decode()
 				if l == "UNKNOWN" or l == "UNREALIZABLE":
 					return False
-				elif l == "REALIZABLE":
-					break
+				elif l == "AUTOMATAEND":
+					captureUCB = False
 				elif l == "AUTOMATA":
 					captureUCB = True
-				elif l =="REASSIGNINGSTATES":
-					captureUCB = False
-					captureStateReassignment = True
-				elif l == "INITIALSTATE":
-					captureStateReassignment = False
-					captureInitialState = True
-				elif l == "ANTICHAINHEADS":
-					captureInitialState = False
+				elif l == "ANTICHAIN":
 					captureAntichain = True
+				elif l == "ANTICHAINEND":
+					captureAntichain = False
 				elif captureUCB:
 					automata_lines.append(l)
 				elif captureAntichain:
 					antichain_lines.append(l)
-				elif captureStateReassignment:
-					state_reassignment.append(int(l))
-				elif captureInitialState:
-					init_state = int(l)
-			antichain_lines = antichain_lines[:-1]
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
-			self.ucb.set_init_state(state_reassignment.index(init_state))
 		except Exception as e:
 			print(command)
 			print("Cannot execute command.")
 			print(e)
 			return False
-		print("Maximal Elements of Antichain: ")
+		logger.info("Maximal Elements of Antichain: ")
 		for line in antichain_lines:
 			list_item = list(map(lambda x: int(x), line.strip('{ }\n').split(" ")))
-			antichain_vector = []
-			for s in state_reassignment:
-				antichain_vector.append(list_item[s])
-			print(antichain_vector)
-			self.antichain_heads.append(antichain_vector)
+			logger.info(list_item)
+			self.antichain_heads.append(list_item)
 		if len(antichain_lines) == 0:
 			self.antichain_heads.append([0]*self.ucb.num_states())
 		return True
