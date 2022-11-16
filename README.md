@@ -3,7 +3,7 @@
 This is a modern implementation of learning algorithms in reactive synthesis using antichain data structures.
 The theory and practice is described in:
 
-   TO BE ANNOUNCED
+> TO BE ANNOUNCED
    
 # Dependencies
 
