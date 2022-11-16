@@ -14,7 +14,7 @@ with open('LICENSE') as f:
 setup(
     name='LTL',
     version='0.1.0',
-    description='Learn Model with LTL Repository',
+    description='Learn Model with LTL',
     long_description=readme,
     author='Mrudula Balachander',
     author_email='mrudula.balachander@ulb.be',
