@@ -4,6 +4,7 @@ import subprocess
 import math
 from LTLsynthesis.utilities import contains
 import logging
+import traceback
 
 logger = logging.getLogger('misc-logger')
 
@@ -30,7 +31,7 @@ def build_strix(LTL_formula, I, O):
 			f.write(a.show().data)
 		return a.show().data
 	except Exception as e:
-		print(e)
+		traceback.print_exc()
 
 	return ""
 
@@ -52,13 +53,15 @@ class UCB(object):
 			output_atomic_propositions):
 		super(UCB, self).__init__()
 		self.k = k
+		self.internal_error = False
+		self.formula_error = False
 
 		# Compute the antichain
 		self.ucb = None
 		self.antichain_heads = []
 		if not (self.compute_winning(psi, input_atomic_propositions, 
 							 output_atomic_propositions)):
-			return
+			return None
 		# universal co-buchi of formula
 		self.num_states = self.ucb.num_states()
 		
@@ -88,6 +91,7 @@ class UCB(object):
 			for line in op.stdout.splitlines():
 				l = line.decode()
 				if l == "UNKNOWN" or l == "UNREALIZABLE":
+					print(command)
 					return False
 				elif l == "AUTOMATAEND":
 					captureUCB = False
@@ -101,12 +105,18 @@ class UCB(object):
 					automata_lines.append(l)
 				elif captureAntichain:
 					antichain_lines.append(l)
+			if len(automata_lines) == 0:
+				print(command)
+				self.formula_error = True
+				self.error_msg = "Error in LTL formula"
+				return False
 			for a in spot.automata('\n'.join(automata_lines)):
 				self.ucb = a
 		except Exception as e:
+			self.internal_error = True
+			self.error_msg = str(e)
 			print(command)
-			print("Cannot execute command.")
-			print(e)
+			traceback.print_exc()
 			return False
 		logger.info("Maximal Elements of Antichain: ")
 		for line in antichain_lines:

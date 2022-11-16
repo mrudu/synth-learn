@@ -48,6 +48,12 @@
 					<textarea style="width: 100%; display: none;" name="outputs" id="outputs_textarea" placeholder="grant_0, grant_1"></textarea>
 				</div>
 			</fieldset>
+			<fieldset id="kvalue">
+				<div class="mb-3" id="kvalue-div">
+					<label for="kvalue_input" class="form-label">Value of k</label>
+					<input name="kvalue" class="form-control" id="kvalue_input" placeholder="2">
+				</div>
+			</fieldset>
 			{% block traces %} {% endblock traces %}
 		</form>
 	</div>

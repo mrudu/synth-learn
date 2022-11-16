@@ -24,7 +24,22 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	ts = time.time()
 	k_unsafe = True
 	UCBWrapper = UCB(k, LTL_formula, I, O)
+	k_max = max(int(k * 1.5), 10)
 	while UCBWrapper.ucb is None:
+		if k == k_max:
+			return None, {'msg': 'Specification unsafe for k={}'.format(k), 'retry': True, 'k': k}
+		if UCBWrapper.internal_error:
+			return None, {
+				'msg': 'Internal Server Error: ' + UCBWrapper.error_msg,
+				'retry': False,
+				'k': k
+			}
+		if UCBWrapper.formula_error:
+			return None, {
+				'msg': 'Parsing Formula Error: ' + UCBWrapper.error_msg,
+				'retry': False,
+				'k': k
+			}
 		logger.debug("LTL Specification is unsafe for k=" + str(k))
 		k = k + 1
 		UCBWrapper = UCB(k, LTL_formula, I, O)
@@ -42,6 +57,8 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	# Check if K is appropriate for traces
 	logger.debug("Checking if K is appropriate for traces")
 	while k_unsafe:
+		if k == k_max:
+			return None, {'msg': 'Traces unsafe', 'retry': True, 'k': k}
 		initialize_counting_function(mealy_machine, UCBWrapper)
 		if checkCFSafety(mealy_machine):
 			logger.info("Traces is safe for k=" + str(k))
@@ -59,6 +76,8 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 		target_machine = load_automaton_from_file(target)
 		k_unsafe = True
 		while k_unsafe:
+			if k == k_max:
+				return None, {'msg': 'Target unsafe', 'retry': True, 'k': k}
 			initialize_counting_function(target_machine, UCBWrapper)
 			if checkCFSafety(target_machine):
 				logger.info("Target is safe for k=" + str(k))

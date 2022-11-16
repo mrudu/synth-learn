@@ -1,4 +1,5 @@
 $(document).ready(function() {
+	$('.alert').alert()
 	let count=0
 	let exampleReference = {
 		'SimpleArbiter2': {
@@ -105,6 +106,17 @@ $(document).ready(function() {
 		outputsEditor.setValue(exampleReference[exampleName]['outputs']);
 		tracesEditor.setValue(exampleReference[exampleName]['traces'].join('\n'));
 	};
+
+	let addAlert = function(message, isError) {
+		$('<div>', {
+			class: 'alert alert-dismissible d-flex align-items-center ' + (isError?'alert-danger':'alert-warning'),
+			role: 'alert'
+		}).appendTo('form').html(
+		"<i class=\"bi bi-exclamation-triangle-fill\"></i> &nbsp;"
+		+ message
+		+ "<button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\" aria-label=\"Close\"></button>");
+		$('.alert').alert();
+	}
 	
 	$('#submit').click(function(){
 		document.querySelector('svg').innerHTML = "";
@@ -124,6 +136,9 @@ $(document).ready(function() {
 			return;
 		}
 
+		let k = parseInt(data.get('kvalue'));
+		k = k > 0? k : 1;
+
 		formula = "";
 		if (assumptions) {
 			formula += make_formula(assumptions);
@@ -136,7 +151,7 @@ $(document).ready(function() {
 		let inputs = inputsEditor.getValue().trim();
 		let outputs = outputsEditor.getValue().trim();
 		if (!inputs && !outputs) {
-			$("#image-container").text("No input or output symbols specified")
+			addAlert("No input or output symbols specified");
 			return;
 		}
 		inputs = make_propositions(inputs);
@@ -144,6 +159,7 @@ $(document).ready(function() {
 
 		data.set('inputs', inputs);
 		data.set('outputs', outputs);
+		data.set('k', k);
 
 		let traces = tracesEditor.getValue().trim();
 		data.set('traces', make_traces(traces));	
@@ -157,6 +173,7 @@ $(document).ready(function() {
 			cache: false,
 			data: data, 
 			success: function(data) {
+				$('.submit-text').html("Submit");
 				$('.downloader').removeClass('visually-hidden');
 				$('.submit-text').removeClass('visually-hidden');
 				$('.loading').addClass('visually-hidden');
@@ -171,6 +188,20 @@ $(document).ready(function() {
 				data.traces.forEach((item) => {
 					ul.append(`<li class="list-group-item">${item.join('.')}</li>`);
 				});
+			},
+			error: function(error) {
+				data = error.responseJSON
+				$('.downloader').removeClass('visually-hidden');
+				$('.submit-text').removeClass('visually-hidden');
+				$('.loading').addClass('visually-hidden');
+				if (!showTarget) {
+					$('.downloader.target').addClass('visually-hidden');
+				}
+				addAlert(data.msg, !data.retry);
+				if (data.retry) {
+					$('.submit-text').html("Retry?");
+					$('input[name="kvalue"').val(data.k + 1);
+				}
 			}
 		});
 	});

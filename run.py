@@ -113,7 +113,7 @@ def execute_algorithm(data, target_file):
     
     traces = data['traces']
     traces = traces.split('\n')
-
+    k = int(data['k'])
     traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
     
     if (len(target_file.filename) > 0) and (allowed_file(target_file.filename)):
@@ -128,16 +128,18 @@ def execute_algorithm(data, target_file):
         input_atomic_propositions,
         output_atomic_propositions,
         traces, "Sample",
-        target_filename, 2)
+        target_filename, k)
+    if m is None:
+        return stats, 400
     svg_file = open(
         'static/temp_model_files/LearnedModel_{}.svg'.format(session['number']), 
         'r', encoding = 'utf-8').read()
     svg_file = ''.join(svg_file.split('\n')[6:])
-    return jsonify({
+    return {
         'msg': 'success',
         'img': svg_file,
         'traces': stats['traces']
-   })
+   }, 200
 
 def execute_strix(data):
     input_atomic_propositions = data['inputs']
