@@ -22,6 +22,7 @@ def execute_algorithm(data, target_file):
     input_atomic_propositions = input_atomic_propositions.split(',')
     output_atomic_propositions = data['outputs']
     output_atomic_propositions = output_atomic_propositions.split(',')
+    negative_traces = data['negative']
     
     traces = data['traces']
     traces = traces.split('\n')
@@ -39,7 +40,8 @@ def execute_algorithm(data, target_file):
         data['formula'],
         input_atomic_propositions,
         output_atomic_propositions,
-        traces, "Sample",
+        traces, negative_traces,
+        "Sample",
         target_filename, k)
     if m is None:
         return stats, 400

@@ -52,7 +52,7 @@ class UCB(object):
 
 	def __init__(
 			self, k, psi, input_atomic_propositions, 
-			output_atomic_propositions):
+			output_atomic_propositions, negative_traces=[]):
 		super(UCB, self).__init__()
 		self.k = k
 		self.internal_error = False
@@ -62,7 +62,7 @@ class UCB(object):
 		self.ucb = None
 		self.antichain_heads = []
 		if not (self.compute_winning(psi, input_atomic_propositions, 
-							 output_atomic_propositions)):
+			output_atomic_propositions, negative_traces)):
 			return None
 		# universal co-buchi of formula
 		self.num_states = self.ucb.num_states()
@@ -73,7 +73,7 @@ class UCB(object):
 		self.bdd_outputs = self.get_bdd_propositions(
 			output_atomic_propositions)
 
-	def compute_winning(self, psi, inputs, outputs):
+	def compute_winning(self, psi, inputs, outputs, negative_traces=[]):
 		src_file = config['ACACIA_BONSAI_TOOL']
 		antichain_lines = []
 		automata_lines = []

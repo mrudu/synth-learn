@@ -7,6 +7,7 @@ $(document).ready(function() {
 			'guarantees': ['G (p -> F (gp))', 'G (q -> F (gq))', 'G (!gp | !gq)'],
 			'inputs': 'p, q',
 			'outputs': 'gp, gq',
+			'negative': ['!p & !q.gp | gq'],
 			'traces': ['p & q.gp & !gq']
 		},
 		'SimpleArbiter3': {
@@ -18,6 +19,7 @@ $(document).ready(function() {
 				'G (!(gp & gq) & !(gp & gr) & !(gr & gq))'],
 			'inputs': 'p, q, r',
 			'outputs': 'gp, gq, gr',
+			'negative': [],
 			'traces': ['p & q & r.gp & !gq & !gr']
 		},
 		'LiftFloor3': {
@@ -33,6 +35,7 @@ $(document).ready(function() {
 				'f0'],
 			'inputs': 'b0, b1',
 			'outputs': 'f0, f1, serve',
+			'negative': [],
 			'traces': [
 				'!b0 & b1.f0 & !f1 & !serve.!b0 & b1.!f0 & f1 & serve.!b0 & !b1.!f0 & f1 & !serve.!b0 & !b1.!f0 & f1 & !serve',
 				'!b0 & !b1.f0 & !f1 & !serve.!b0 & !b1.f0 & !f1 & !serve']
@@ -47,6 +50,7 @@ $(document).ready(function() {
 				'G (gm -> (!g1 & !g2))'],
 			'inputs': 'p1, p2, m',
 			'outputs': 'g1, g2, gm',
+			'negative': [],
 			'traces': ["!m & !p1 & !p2.!g1 & !g2 & !gm",
 			"m & p1 & p2.!g1 & !g2 & gm.!m & !p1 & !p2.g1 & !g2 & !gm",
 			"!m & p1 & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
@@ -85,6 +89,7 @@ $(document).ready(function() {
 	let inputsEditor = initLineEditor("inputs_textarea");
 	let outputsEditor = initLineEditor("outputs_textarea");
 	let tracesEditor = initEditor("traces_textarea", "traces");
+	let negativeEditor = initEditor("negative_textarea", "negative");
 	
 	let process_variable = str => {
 		str = str.split('=').map(s => s.trim());
@@ -93,6 +98,7 @@ $(document).ready(function() {
 	}
 	let make_formula = str => "((" + str.split(/\r|\n/).map(s => s.trim()).filter(s => s.length > 0).join(") & (") + "))";
 	let make_propositions = str => str.split(/\r|\n|,| /).filter(s => s.length > 0).map(s => s.trim()).join(',');
+	let make_negative = str => str.split(/\r|\n|,/).filter(s => s.length > 0).map(s => s.trim()).join(',');
 	let make_traces = str => str.split(/\r|\n/).map(
 		s => s.includes('=')? 
 		process_variable(s):
@@ -105,6 +111,7 @@ $(document).ready(function() {
 		inputsEditor.setValue(exampleReference[exampleName]['inputs']);
 		outputsEditor.setValue(exampleReference[exampleName]['outputs']);
 		tracesEditor.setValue(exampleReference[exampleName]['traces'].join('\n'));
+		negativeEditor.setValue(exampleReference[exampleName]['negative'].join('\n'));
 	};
 
 	let addAlert = function(message, isError) {
@@ -162,7 +169,9 @@ $(document).ready(function() {
 		data.set('k', k);
 
 		let traces = tracesEditor.getValue().trim();
-		data.set('traces', make_traces(traces));	
+		let negative = negativeEditor.getValue().trim();
+		data.set('traces', make_traces(traces));
+		data.set('negative', make_negative(negative));	
 		
 		$.ajax({
 			type: 'POST',
