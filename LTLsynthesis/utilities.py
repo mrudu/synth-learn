@@ -69,7 +69,7 @@ def checkCFSafety(mealy: MealyMachine):
 			i_bdd & o_bdd), f2)
 		if not UCBWrapper.is_safe(f_):
 			logger.debug("checking safety took {} seconds".format(time.time()-ts))
-			logger.info("Unsafe trace" + trace)
+			logger.info("Unsafe trace " + trace)
 			return False
 		if contains(f2, f_) and f_ != f2:
 			target_state.counting_function = f_;
