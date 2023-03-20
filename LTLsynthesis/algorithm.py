@@ -13,7 +13,7 @@ import time
 
 logger = logging.getLogger("misc-logger")
 
-def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):	
+def build_mealy(LTL_formula, I, O, traces, infinite_traces, file_name, target, k = 2):	
 	global ordered_inputs, bdd_inputs, ucb, UCBWrapper
 
 	### STEP 1 ###
@@ -24,7 +24,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	logger.debug("Checking if K is appropriate for LTL")
 	ts = time.time()
 	k_unsafe = True
-	UCBWrapper = UCB(k, LTL_formula, I, O)
+	UCBWrapper = UCB(k, LTL_formula, I, O, infinite_traces)
 	k_max = max(int(k * 1.5), 10)
 	while UCBWrapper.ucb is None:
 		if k == k_max:
@@ -43,7 +43,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 			}
 		logger.debug("LTL Specification is unsafe for k=" + str(k))
 		k = k + 1
-		UCBWrapper = UCB(k, LTL_formula, I, O)
+		UCBWrapper = UCB(k, LTL_formula, I, O, infinite_traces)
 	
 	logger.debug("LTL Specification is safe for k=" + str(k))
 	bdd_inputs = UCBWrapper.bdd_inputs
@@ -67,7 +67,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 			break
 		k = k + 1
 		logger.debug("Traces is unsafe for k=" + str(k))
-		UCBWrapper = UCB(k, LTL_formula, I, O)
+		UCBWrapper = UCB(k, LTL_formula, I, O, infinite_traces)
 
 	logger.info("Choosing K as " + str(k))
 
@@ -86,7 +86,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 				break
 			k = k + 1
 			logger.info("Target is unsafe for k=" + str(k))
-			UCBWrapper = UCB(k, LTL_formula, I, O)
+			UCBWrapper = UCB(k, LTL_formula, I, O, infinite_traces)
 	
 	### STEP 2 ###
 	# Merge compatible nodes
@@ -116,7 +116,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 			return build_mealy(
 				LTL_formula, 
 				I, 
-				O, traces, 
+				O, traces, infinite_traces, 
 				file_name, target, k)
 	if target_machine is not None:
 		save_mealy_machile(target_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "TargetModel", ['svg', 'pdf'])

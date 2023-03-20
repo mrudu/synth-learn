@@ -17,3 +17,13 @@ CodeMirror.defineSimpleMode("traces", {
         {regex: /(?<=([a-zA-Z_0-9]+\ ?=\ *)).*/, token: "string"}
     ]
 });
+CodeMirror.defineSimpleMode("infinite_traces", {
+    start: [
+        {regex: /\.|,|:|;/, token: "keyword"},
+        {regex: /(?:true|false|tt|ff|0|1)\b/, token: "atom"},
+        {regex: /&&|&|AND|\|\||\||OR|!|NOT/, token: "operator"},
+        {regex: /[a-z_][a-zA-Z_0-9]*/, token: "variable"},
+        {regex: /\(|\)/, token: "bracket"},
+        {regex: /(?<=([a-zA-Z_0-9]+\ ?=\ *)).*/, token: "string"}
+    ]
+});

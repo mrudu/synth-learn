@@ -7,7 +7,9 @@ $(document).ready(function() {
 			'guarantees': ['G (p -> F (gp))', 'G (q -> F (gq))', 'G (!gp | !gq)'],
 			'inputs': 'p, q',
 			'outputs': 'gp, gq',
-			'traces': ['p & q.gp & !gq']
+			'traces': ['p & q.gp & !gq'],
+			'infinite_traces': [
+				'p & !q.gp & !gq*!p & !q.!gp & !gq']
 		},
 		'SimpleArbiter3': {
 			'assumptions': [],
@@ -18,7 +20,9 @@ $(document).ready(function() {
 				'G (!(gp & gq) & !(gp & gr) & !(gr & gq))'],
 			'inputs': 'p, q, r',
 			'outputs': 'gp, gq, gr',
-			'traces': ['p & q & r.gp & !gq & !gr']
+			'traces': ['p & q & r.gp & !gq & !gr'],
+			'infinite_traces': [
+				'p & !q & !r.gp & !gq & !gr*!p & !q & r.!gp & !gq & gr']
 		},
 		'LiftFloor3': {
 			'assumptions': [
@@ -35,7 +39,9 @@ $(document).ready(function() {
 			'outputs': 'f0, f1, serve',
 			'traces': [
 				'!b0 & b1.f0 & !f1 & !serve.!b0 & b1.!f0 & f1 & serve.!b0 & !b1.!f0 & f1 & !serve.!b0 & !b1.!f0 & f1 & !serve',
-				'!b0 & !b1.f0 & !f1 & !serve.!b0 & !b1.f0 & !f1 & !serve']
+				'!b0 & !b1.f0 & !f1 & !serve.!b0 & !b1.f0 & !f1 & !serve'],
+			'infinite_traces': [
+				'!b0 & b1.f0 & !f1 & !serve.!b0 & b1.!f0 & f1 & serve*!b0 & !b1.!f0 & f1 & !serve']
 		},
 		'PrioritizedArbiter': {
 			'assumptions': ['G F !m'],
@@ -54,7 +60,9 @@ $(document).ready(function() {
 			"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
 			"m & p1 & !p2.!g1 & !g2 & gm.!m & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
 			"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1 & p2.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
-			"m & p1 & !p2.!g1 & !g2 & gm.!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm"]
+			"m & p1 & !p2.!g1 & !g2 & gm.!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm"],
+			'infinite_traces': [
+				'm & !p1 & !p2.!g1 & !g2 & gm*!m & !p1 & !p2.!g1 & !g2 & !gm']
 		}
 	}
 
@@ -85,6 +93,7 @@ $(document).ready(function() {
 	let inputsEditor = initLineEditor("inputs_textarea");
 	let outputsEditor = initLineEditor("outputs_textarea");
 	let tracesEditor = initEditor("traces_textarea", "traces");
+	let infiniteTracesEditor = initEditor("infinite_traces_textarea", "infinite_traces");
 	
 	let process_variable = str => {
 		str = str.split('=').map(s => s.trim());
@@ -98,6 +107,11 @@ $(document).ready(function() {
 		process_variable(s):
 		s.trim().split(/\.|,|:|;|\#/).map(t => t in variable_set? variable_set[t]: t).join(".")).filter(
 		s => s.length > 0).join('\n');
+	let make_infinite_traces = str => str.split(/\r|\n/).map(
+		s => s.includes('=')? 
+		process_variable(s):
+		s.trim().split(/\*/).map(r => r.split(/\.|,|:|;|\#/).map(t => t in variable_set? variable_set[t]: t).join(".")).join("*")).filter(
+		s => s.length > 0).join('\n');
 
 	let setData =  function (exampleName) {
 		assumptionsEditor.setValue(exampleReference[exampleName]['assumptions'].join('\n'));
@@ -105,6 +119,7 @@ $(document).ready(function() {
 		inputsEditor.setValue(exampleReference[exampleName]['inputs']);
 		outputsEditor.setValue(exampleReference[exampleName]['outputs']);
 		tracesEditor.setValue(exampleReference[exampleName]['traces'].join('\n'));
+		tracesEditor.setValue(exampleReference[exampleName]['infinite_traces'].join('\n'));
 	};
 
 	let addAlert = function(message, isError) {
@@ -162,7 +177,9 @@ $(document).ready(function() {
 		data.set('k', k);
 
 		let traces = tracesEditor.getValue().trim();
-		data.set('traces', make_traces(traces));	
+		let infinite_traces = infiniteTracesEditor.getValue().trim();
+		data.set('traces', make_traces(traces));
+		data.set('infinite_traces', make_infinite_traces(infinite_traces));
 		
 		$.ajax({
 			type: 'POST',

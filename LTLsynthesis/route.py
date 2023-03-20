@@ -25,6 +25,10 @@ def execute_algorithm(data, target_file):
     
     traces = data['traces']
     traces = traces.split('\n')
+
+    infinite_traces = data['infinite_traces']
+    infinite_traces = infinite_traces.split('\n')
+    
     k = int(data['k'])
     traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
     
@@ -39,7 +43,7 @@ def execute_algorithm(data, target_file):
         data['formula'],
         input_atomic_propositions,
         output_atomic_propositions,
-        traces, "Sample",
+        traces, infinite_traces, "Sample",
         target_filename, k)
     if m is None:
         return stats, 400

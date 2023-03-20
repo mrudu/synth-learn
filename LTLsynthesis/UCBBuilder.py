@@ -37,13 +37,13 @@ def build_strix(LTL_formula, I, O):
 
 	return ""
 
-def build_UCB(LTL_formula, I, O, k=2, limit=10):
+def build_UCB(LTL_formula, I, O, infinite_traces, k=2, limit=10):
 	global UCBWrapper
-	UCBWrapper = UCB(k, LTL_formula, I, O)
+	UCBWrapper = UCB(k, LTL_formula, I, O, infinite_traces)
 	if UCBWrapper.ucb is None:
 		if (k+1 > limit):
 			limit = limit*1.5
-		return build_UCB(LTL_formula, I, O, k+1, limit)
+		return build_UCB(LTL_formula, I, O, infinite_traces, k+1, limit)
 	logger.info("LTL Specification is safe for k=" + str(k))
 	return UCBWrapper, k
 
@@ -52,7 +52,7 @@ class UCB(object):
 
 	def __init__(
 			self, k, psi, input_atomic_propositions, 
-			output_atomic_propositions):
+			output_atomic_propositions, infinite_traces):
 		super(UCB, self).__init__()
 		self.k = k
 		self.internal_error = False
@@ -62,7 +62,7 @@ class UCB(object):
 		self.ucb = None
 		self.antichain_heads = []
 		if not (self.compute_winning(psi, input_atomic_propositions, 
-							 output_atomic_propositions)):
+							 output_atomic_propositions, infinite_traces)):
 			return None
 		# universal co-buchi of formula
 		self.num_states = self.ucb.num_states()
@@ -73,16 +73,19 @@ class UCB(object):
 		self.bdd_outputs = self.get_bdd_propositions(
 			output_atomic_propositions)
 
-	def compute_winning(self, psi, inputs, outputs):
+	def compute_winning(self, psi, inputs, outputs, infinite_traces):
 		src_file = config['ACACIA_BONSAI_TOOL']
 		antichain_lines = []
 		automata_lines = []
+		infinite_traces = list(map(lambda traces: list(map(lambda trace: list(zip(*[map(lambda prop: "{"+",".join(prop.split(" & "))+"}", trace.split("."))]*2)), traces.split("*"))), infinite_traces))
+		infinite_traces = list(map(lambda traces: "#*".join(map(lambda trace: "#".join(map(lambda prop: ''.join(prop), trace)), traces)), infinite_traces))
 		command = config['ACACIA_BONSAI_COMMAND'].format(
 			src_file,
 			psi, 
 			",".join(inputs), 
 			",".join(outputs), 
-			self.k)
+			self.k,
+			";".join(infinite_traces))
 		logger.debug(command)
 		try:
 			op = subprocess.run(command, shell=True, capture_output=True)
