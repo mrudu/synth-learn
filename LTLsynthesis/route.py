@@ -43,13 +43,8 @@ def execute_algorithm(data, target_file):
         target_filename, k)
     if m is None:
         return stats, 400
-    svg_file = open(
-        app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'LearnedModel_{}.svg'.format(session['number']), 
-        'r', encoding = 'utf-8').read()
-    svg_file = ''.join(svg_file.split('\n')[6:])
     return {
-        'msg': 'success',
-        'img': svg_file,
+        'query_number': session['number'], 
         'traces': stats['traces']
    }, 200
 
@@ -80,7 +75,7 @@ def execute():
         return render_template('AcaciaSynth.html', LTL_formula="Nothing", type="acacia")
 
 @app.route('/strix', methods=['GET', 'POST'])
-def execute_strix():
+def execute_strix_route():
     if request.method == 'POST':
         session['number'] = random.randint(100, 1000)
         return execute_strix(request.form)

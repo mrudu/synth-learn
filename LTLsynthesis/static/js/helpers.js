@@ -181,7 +181,7 @@ $(document).ready(function() {
 					$('.downloader.target').addClass('visually-hidden');
 				}
 				document.querySelector('svg').innerHTML = data.img;
-				$('.figure .svg svg').attr('height', $('.figure .svg').attr('height'));
+				document.getElementById('img').src = "/static/temp_model_files/LearnedModel_"+ data.query_number + ".svg?count=" + count;
 				$('.figure-caption').html("");
 				let ul = $('ul.list-group');
 				ul.removeClass('visually-hidden');

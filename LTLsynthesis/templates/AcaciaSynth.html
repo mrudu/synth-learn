@@ -1,6 +1,7 @@
 {% extends "LTLForm.html" %}
 
-{% block title %} Acacia-Synth: Synthesis With A Touch Of User Interaction {% endblock %}
+{% block title %} Synth-Learn Tool: Synthesis With A Touch Of User Interaction {% endblock %}
+{% block subtitle %} Synth-Learn is a new tool for reactive LTL synthesis guided by user-generated traces. It uses Acacia-Bonsai tool to solve the plain LTL synthesis problem and builds the Mealy-Machine that enforces the LTL specification and generalizes the traces provided by the user. (<a href="https://arxiv.org/abs/2301.10485"> More info </a>){% endblock %}
 {% block traces %}
 	<fieldset id="traces">
 		<div class="mb-3">
@@ -28,8 +29,7 @@
 {% block footer %}
 	<div class="row mb-3">
 		<figure class="figure col-7" id="image-container">
-			<svg xmlns="http://www.w3.org/2000/svg" class="svg" width="100%" height="100%">
-			</svg>
+			<img id="img"/>
 			<figcaption class="figure-caption"></figcaption>
 		</figure>
 		<ul class="list-group list-group-flush col-5 visually-hidden">
