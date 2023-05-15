@@ -16,26 +16,22 @@ def build_strix(LTL_formula, I, O):
 			src_file,
 			LTL_formula, 
 			",".join(I), 
-			",".join(O)) 
-	logger.debug(command)
+			",".join(O))
 	try:
 		op = subprocess.run(command, shell=True, capture_output=True)
 		automata_lines = []
-		ucb = None
-		
+		ucb = None		
 		for line in op.stdout.splitlines():
 			l = line.decode()
 			automata_lines.append(l)
-
 		for a in spot.automata('\n'.join(automata_lines[1:])):
 			ucb = a
 		with open(app.root_path + config['MODEL_FILES_DIRECTORY'] + "StrixModel.svg", 'w') as f:
 			f.write(a.show().data)
-		return a.show().data
+		return {'realizable': automata_lines[0], 'automata': a.show().data}
 	except Exception as e:
 		traceback.print_exc()
-
-	return ""
+		return {'realizable': False, 'automata': 'Error'}
 
 def build_UCB(LTL_formula, I, O, k=2, limit=10):
 	global UCBWrapper

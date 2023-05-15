@@ -255,7 +255,7 @@ $(document).ready(function() {
 				$('.submit-text').removeClass('visually-hidden');
 				$('.loading').addClass('visually-hidden');
 				document.getElementById('img').src = "/static/temp_model_files/StrixModel.svg?count=" + count;
-				$('.figure-caption').html("");
+				$('.figure-caption').html(data.msg);
 			}
 		});
 	});

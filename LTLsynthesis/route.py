@@ -54,13 +54,13 @@ def execute_strix(data):
     output_atomic_propositions = data['outputs']
     output_atomic_propositions = output_atomic_propositions.split(',')
 
-    m= build_strix(
+    m = build_strix(
         data['formula'],
         input_atomic_propositions,
         output_atomic_propositions)
     return jsonify({
-        'msg': 'success',
-        'img': m
+        'msg': m['realizable'],
+        'img': m['automata']
    })
 
 @app.route('/', methods=['GET', 'POST'])
