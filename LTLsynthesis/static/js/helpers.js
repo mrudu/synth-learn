@@ -119,7 +119,6 @@ $(document).ready(function() {
 	}
 	
 	$('#submit').click(function(){
-		document.querySelector('svg').innerHTML = "";
 		$('.downloader').addClass('visually-hidden');
 		$('.submit-text').addClass('visually-hidden');
 		$('ul.list-group').addClass('visually-hidden').html("");
@@ -180,7 +179,6 @@ $(document).ready(function() {
 				if (!showTarget) {
 					$('.downloader.target').addClass('visually-hidden');
 				}
-				document.querySelector('svg').innerHTML = data.img;
 				document.getElementById('img').src = "/static/temp_model_files/LearnedModel_"+ data.query_number + ".svg?count=" + count;
 				$('.figure-caption').html("");
 				let ul = $('ul.list-group');
