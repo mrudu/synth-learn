@@ -6,6 +6,7 @@ from LTLsynthesis.utilities import contains
 import logging
 import traceback
 from LTLsynthesis import app
+from flask import session
 
 logger = logging.getLogger('misc-logger')
 config = app.config
@@ -26,7 +27,7 @@ def build_strix(LTL_formula, I, O):
 			automata_lines.append(l)
 		for a in spot.automata('\n'.join(automata_lines[1:])):
 			ucb = a
-		with open(app.root_path + config['MODEL_FILES_DIRECTORY'] + "StrixModel.svg", 'w') as f:
+		with open(app.root_path + config['MODEL_FILES_DIRECTORY'] + "StrixModel_{}.svg".format(session['number']), 'w') as f:
 			f.write(a.show().data)
 		return {'realizable': automata_lines[0], 'automata': a.show().data}
 	except Exception as e:

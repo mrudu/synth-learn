@@ -60,7 +60,8 @@ def execute_strix(data):
         output_atomic_propositions)
     return jsonify({
         'msg': m['realizable'],
-        'img': m['automata']
+        'img': m['automata'],
+        'svg': "StrixModel_{}.svg".format(session['number'])
    })
 
 @app.route('/', methods=['GET', 'POST'])
@@ -92,6 +93,12 @@ def download_dot():
 def download_pdf():
     return send_file(
         app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'LearnedModel_{}.pdf'.format(session['number']), 
+        as_attachment=True)
+
+@app.route('/download/svg')
+def download_svg():
+    return send_file(
+        app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'StrixModel_{}.svg'.format(session['number']), 
         as_attachment=True)
 
 @app.route('/download/target')
