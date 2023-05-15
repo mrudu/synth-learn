@@ -255,7 +255,7 @@ $(document).ready(function() {
 				$('.downloader').removeClass('visually-hidden');
 				$('.submit-text').removeClass('visually-hidden');
 				$('.loading').addClass('visually-hidden');
-				document.getElementById('img').src = "/static/temp_model_files/StrixModel.svg?count=" + count;
+				document.getElementById('img').src = "/static/temp_model_files/" + data.svg + "?count=" + count;
 				$('.figure-caption').html(data.msg);
 			}
 		});
