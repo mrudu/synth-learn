@@ -144,7 +144,10 @@ def mark_nodes(mealy_machine):
 		state.premachine_transitions = list(state.transitions.keys())
 
 def cleaner_display(mealy_machine, ucb):
+	count = 0
 	for state in mealy_machine.states:
+		state.state_id = count
+		count += 1
 		grouped_transitions = {}
 		for i, output_state in state.transitions.items():
 			grouped_transitions[output_state] = [i] if output_state not in grouped_transitions.keys() else grouped_transitions[output_state] + [i]
