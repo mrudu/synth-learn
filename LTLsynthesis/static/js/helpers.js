@@ -48,13 +48,100 @@ $(document).ready(function() {
 			'inputs': 'p1, p2, m',
 			'outputs': 'g1, g2, gm',
 			'traces': ["!m & !p1 & !p2.!g1 & !g2 & !gm",
-			"m & p1 & p2.!g1 & !g2 & gm.!m & !p1 & !p2.g1 & !g2 & !gm",
-			"!m & p1 & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
-			"!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
-			"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
-			"m & p1 & !p2.!g1 & !g2 & gm.!m & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
-			"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1 & p2.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
-			"m & p1 & !p2.!g1 & !g2 & gm.!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm"]
+				"m & p1 & p2.!g1 & !g2 & gm.!m & !p1 & !p2.g1 & !g2 & !gm",
+				"!m & p1 & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
+				"!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
+				"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
+				"m & p1 & !p2.!g1 & !g2 & gm.!m & p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & g2 & !gm",
+				"m & !p1 & p2.!g1 & !g2 & gm.!m & !p1 & p2.!g1 & g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm",
+				"m & p1 & !p2.!g1 & !g2 & gm.!m & p1 & !p2.g1 & !g2 & !gm.!m & !p1 & !p2.!g1 & !g2 & !gm"]
+		},
+		'TowerCranes2': {
+			'assumptions': [
+				'G(r1 -> (r1 W g1))',
+				'G(r2 -> (r2 W g2))',
+				'G(g1 -> F (l1))',
+				'G(g2 -> F (l2))',
+				'G (!(r1 & l1))',
+				'G (!(r2 & l2))'],
+			'guarantees' : [
+				'G (r1 -> F (g1))',
+				'G (r2 -> F (g2))',
+				'G (g1 -> (g1 U X(l1)))',
+				'G (g2 -> (g2 U X(l2)))',
+				'G (!(g1 & g2))'],
+			'inputs': 'r1, r2, l1, l2',
+			'outputs': 'g1, g2',
+			'traces': ['!r1 & r2.!g1 & g2',
+				'!r1 & !r2.!g1 & !g2',
+				'r1 & !r2.g1 & !g2']
+		},
+		'TowerCranes3': {
+			'assumptions': [
+				'G(r11 -> (r11 W g11))',
+				'G(r12 -> (r12 W g12))',
+				'G(r22 -> (r22 W g22))',
+				'G(r23 -> (r23 W g23))',
+				'G(g11 -> F (l11))',
+				'G(g12 -> F (l12))',
+				'G(g22 -> F (l22))',
+				'G(g23 -> F (l23))'],
+			'guarantees' : [
+				'G (r11 -> F (g11))',
+				'G (r12 -> F (g12))',
+				'G (r22 -> F (g22))',
+				'G (r23 -> F (g23))',
+				'G (g11 -> (g11 U X(l11)))',
+				'G (g12 -> (g12 U X(l12)))',
+				'G (g22 -> (g22 U X(l22)))',
+				'G (g23 -> (g23 U X(l23)))',
+				'G (!(g11 & g12))',
+				'G (!(g22 & g23))'],
+			'inputs': 'r11, r12, r22, r23, l11, l12, l22, l23',
+			'outputs': 'g11, g12, g22, g23',
+			'traces': [""]
+		},
+		'CraneController2': {
+			'assumptions': [
+				'G (!(g1 & g2))',
+				'G (g1 -> (g1 W X(l1)))',
+				'G (g2 -> (g2 W X(l2)))',
+				'G ((x11 & !x12) -> F(!r1))',
+				'G ((!x21 & !x22) -> F(!r2))',
+				'G(r1 -> (r1 W g1))',
+				'G(r2 -> (r2 W g2))',
+				'G (r1 -> F (g1))',
+				'G (r2 -> F (g2))',
+				'G (rhoistUP1 -> F(hoistUP1))',
+				'G (rhoistUP2 -> F(hoistUP2))'],
+			'guarantees' : [
+				// No release when request
+				'G (r1 -> !l1)',
+				'G (r2 -> !l2)',
+				// Transition Requirements for Crane 1
+				'G (!(x11 xor x12) -> !(x11 xor X(x11)))',
+				'G ((x11 xor x12) -> !((x11 xor X(x11)) & !(x12 xor X(x12))))',
+				// Transition Requirements for Crane 2
+				'G (!(x21 xor x22) -> !(x21 xor X(x21)))',
+				'G ((x21 xor x22) -> !((x21 xor X(x21)) & !(x22 xor X(x22))))',
+				// Critical implies grant
+				'G ((x11 & !x12) -> g1)',
+				'G ((!x21 & !x22) -> g2)',
+				// Grant implies release
+				'G (g1 -> F X(l1))',
+				'G (g2 -> F X(l2))',
+				// Move out of critical implies release
+				'G (((x11 & !x12) & X !(x11 & !x12)) <-> X(l1))',
+				'G (((!x21 & !x22) & X !(!x21 & !x22)) <-> X(l2))',
+				// Move position requires hoistUp
+				'G (!hoistUP1 -> !(x11 xor X(x11)))',
+				'G (!hoistUP1 -> !(x12 xor X(x12)))',
+				'G (!hoistUP2 -> !(x22 xor X(x22)))',
+				'G (!hoistUP2 -> !(x23 xor X(x23)))',
+				],
+			'inputs': 'g1, g2, r1, r2, hoistUP1, hoistUP2',
+			'outputs': 'l1, l2, x11, x12, x21, x22, rhoistUP1, rhoistUP2',
+			'traces': [""]
 		}
 	}
 
@@ -265,4 +352,7 @@ $(document).ready(function() {
 	$('#SimpleArbiter2').click(() => {setData('SimpleArbiter2')});
 	$('#SimpleArbiter3').click(() => {setData('SimpleArbiter3')});
 	$('#LiftFloor3').click(() => {setData('LiftFloor3')});
+	$('#TowerCranes2').click(() => {setData('TowerCranes2')});
+	$('#TowerCranes3').click(() => {setData('TowerCranes3')});
+	$('#CraneController2').click(() => {setData('CraneController2')});
 });
