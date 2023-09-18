@@ -2,11 +2,9 @@ from LTLsynthesis import app
 from flask import request
 from flask import render_template, send_file, jsonify, session
 
-from LTLsynthesis.algorithm import build_mealy
-from LTLsynthesis.LStarLearning import learning
-from LTLsynthesis.UCBBuilder import build_strix
+from LTLsynthesis.RevampCode.algorithm import build_mealy
+from LTLsynthesis.RevampCode.utils import save_mealy_machile
 import random
-from logging.config import fileConfig
 import json
 import os
 
@@ -18,34 +16,42 @@ def allowed_file(filename):
 
 def execute_algorithm(data, target_file):
     target_filename = ""
-    input_atomic_propositions = data['inputs']
-    input_atomic_propositions = input_atomic_propositions.split(',')
-    output_atomic_propositions = data['outputs']
-    output_atomic_propositions = output_atomic_propositions.split(',')
+
+    # parsing inputs and outputs
+    inputs = data['inputs']
+    inputs = list(map(str.strip, inputs.split(',')))
+    outputs = data['outputs']
+    outputs = list(map(str.strip, outputs.split(',')))
     
+    # parsing traces
     traces = data['traces']
     traces = traces.split('\n')
-    k = int(data['k'])
     traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
+
+    # k
+    k = int(data['k'])
+
+    directory = app.root_path + app.config['MODEL_FILES_DIRECTORY']
+
+    # Target File (Not supported for now)
     
-    if (len(target_file.filename) > 0) and (allowed_file(target_file.filename)):
-        target_filename = app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "TargetModel_{}.dot".format(session['number'])
-        target_file.save(target_filename)
+    if (len(target_file.filename) > 0) and (allowed_file(
+        target_file.filename)):
+        target_file.save(directory + "TargetModel_{}.dot".format(
+            session['number']))
     elif len(target_file.filename) > 0:
         print("Not a dot file!")
-        target_file.save(app.root_path + app.config['MODEL_FILES_DIRECTORY'] + target_file.filename)
+        target_file.save(directory + target_file.filename)
 
-    m, stats = build_mealy(
-        data['formula'],
-        input_atomic_propositions,
-        output_atomic_propositions,
-        traces, "Sample",
-        target_filename, k)
+    m, stats = build_mealy(traces, data['formula'], inputs, outputs,
+        app, k)
     if m is None:
         return stats, 400
-    svg_file = open(
-        app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'LearnedModel_{}.svg'.format(session['number']), 
-        'r', encoding = 'utf-8').read()
+
+    automata_filename = directory + "LearnedModel_{}.svg".format(
+        session['number'])
+    save_mealy_machile(m, automata_filename, ['svg', 'dot', 'pdf'])
+    svg_file = open(automata_filename,'r', encoding = 'utf-8').read()
     svg_file = ''.join(svg_file.split('\n')[6:])
     return {
         'msg': 'success',
@@ -54,15 +60,13 @@ def execute_algorithm(data, target_file):
    }, 200
 
 def execute_strix(data):
-    input_atomic_propositions = data['inputs']
-    input_atomic_propositions = input_atomic_propositions.split(',')
-    output_atomic_propositions = data['outputs']
-    output_atomic_propositions = output_atomic_propositions.split(',')
+    # parsing inputs and outputs
+    inputs = data['inputs']
+    inputs = list(map(str.strip, inputs.split(',')))
+    outputs = data['outputs']
+    outputs = list(map(str.strip, outputs.split(',')))
 
-    m= build_strix(
-        data['formula'],
-        input_atomic_propositions,
-        output_atomic_propositions)
+    m = build_strix(data['formula'], inputs, outputs)
     return jsonify({
         'msg': 'success',
         'img': m
@@ -77,7 +81,8 @@ def execute():
             target_file = request.files['target']
         return execute_algorithm(request.form, target_file)
     else:
-        return render_template('AcaciaSynth.html', LTL_formula="Nothing", type="acacia")
+        return render_template('AcaciaSynth.html', 
+            LTL_formula="Nothing", type="acacia")
 
 @app.route('/strix', methods=['GET', 'POST'])
 def execute_strix():

@@ -1,18 +1,7 @@
 import spot
 import subprocess
 import traceback
-from ucbHelperFunctions import create_bdd_list
-config = {
-	"TESTING":True,
-	"DEBUG":True,
-	"FLASK_ENV":'development',
-	"SECRET_KEY":'97db21348530a03c3a836519c3d636b1f42d4fae7c98038349a9ea87a20dcc36',
-	"STRIX_TOOL":'/Users/mrudula/Downloads/strix',
-	"ACACIA_BONSAI_TOOL":'/home/ubuntu/zheng-acacia-bonsai/build/src/acacia-bonsai',
-	"STRIX_COMMAND":'{} -f \'{}\' --ins=\"{}\" --outs=\"{}\" -m both',
-	"ACACIA_BONSAI_COMMAND":'multipass exec affecting-pademelon -- {} -f \'{}\' -i \'{}\' -o \'{}\' --K={}',
-	"MODEL_FILES_DIRECTORY":'/static/temp_model_files/'
-}
+from LTLsynthesis.RevampCode.ucbHelperFunctions import create_bdd_list
 
 def parse_command(op_lines):
 	antichain_vectors = []
@@ -40,9 +29,9 @@ def parse_command(op_lines):
 			ucb = a
 	return [ucb, antichain_vectors]
 
-def acacia_bonsai_command(formula, inputs, outputs, k):
-	command = config['ACACIA_BONSAI_COMMAND'].format(
-		config['ACACIA_BONSAI_TOOL'], formula, ",".join(inputs),
+def acacia_bonsai_command(formula, inputs, outputs, k, app):
+	command = app.config['ACACIA_BONSAI_COMMAND'].format(
+		app.config['ACACIA_BONSAI_TOOL'], formula, ",".join(inputs),
 		",".join(outputs), k)
 	ucb = None
 	antichain_vectors = []

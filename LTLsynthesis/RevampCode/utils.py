@@ -1,7 +1,16 @@
+from aalpy.utils.FileHandler import visualize_automaton, \
+save_automaton_to_file, load_automaton_from_file
 from aalpy.automata import MealyState, MealyMachine
-from ucbHelperFunctions import is_safe, contains, get_transition_counting_function
+from LTLsynthesis.RevampCode.ucbHelperFunctions import is_safe,\
+contains, get_transition_counting_function
 import spot
 import buddy
+from flask import session
+
+def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
+	for type in file_type:
+		save_automaton_to_file(mealy_machine, file_type=type,
+			path=file_name)
 
 def expand_symbolic_trace(trace, ucb):
 	bdd_inputs = ucb.bdd_inputs
