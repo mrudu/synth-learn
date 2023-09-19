@@ -54,8 +54,7 @@ def execute_algorithm(data, target_file):
     svg_file = open(automata_filename,'r', encoding = 'utf-8').read()
     svg_file = ''.join(svg_file.split('\n')[6:])
     return {
-        'msg': 'success',
-        'img': svg_file,
+        'query_number': session['number'], 
         'traces': stats['traces']
    }, 200
 
@@ -68,8 +67,9 @@ def execute_strix(data):
 
     m = build_strix(data['formula'], inputs, outputs)
     return jsonify({
-        'msg': 'success',
-        'img': m
+        'msg': m['realizable'],
+        'img': m['automata'],
+        'svg': "StrixModel_{}.svg".format(session['number'])
    })
 
 @app.route('/', methods=['GET', 'POST'])
@@ -85,7 +85,7 @@ def execute():
             LTL_formula="Nothing", type="acacia")
 
 @app.route('/strix', methods=['GET', 'POST'])
-def execute_strix():
+def execute_strix_route():
     if request.method == 'POST':
         session['number'] = random.randint(100, 1000)
         return execute_strix(request.form)
@@ -102,6 +102,12 @@ def download_dot():
 def download_pdf():
     return send_file(
         app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'LearnedModel_{}.pdf'.format(session['number']), 
+        as_attachment=True)
+
+@app.route('/download/svg')
+def download_svg():
+    return send_file(
+        app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'StrixModel_{}.svg'.format(session['number']), 
         as_attachment=True)
 
 @app.route('/download/target')
