@@ -43,13 +43,8 @@ def execute_algorithm(data, target_file):
         target_filename, k)
     if m is None:
         return stats, 400
-    svg_file = open(
-        app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'LearnedModel_{}.svg'.format(session['number']), 
-        'r', encoding = 'utf-8').read()
-    svg_file = ''.join(svg_file.split('\n')[6:])
     return {
-        'msg': 'success',
-        'img': svg_file,
+        'query_number': session['number'], 
         'traces': stats['traces']
    }, 200
 
@@ -59,13 +54,14 @@ def execute_strix(data):
     output_atomic_propositions = data['outputs']
     output_atomic_propositions = output_atomic_propositions.split(',')
 
-    m= build_strix(
+    m = build_strix(
         data['formula'],
         input_atomic_propositions,
         output_atomic_propositions)
     return jsonify({
-        'msg': 'success',
-        'img': m
+        'msg': m['realizable'],
+        'img': m['automata'],
+        'svg': "StrixModel_{}.svg".format(session['number'])
    })
 
 @app.route('/', methods=['GET', 'POST'])
@@ -80,7 +76,7 @@ def execute():
         return render_template('AcaciaSynth.html', LTL_formula="Nothing", type="acacia")
 
 @app.route('/strix', methods=['GET', 'POST'])
-def execute_strix():
+def execute_strix_route():
     if request.method == 'POST':
         session['number'] = random.randint(100, 1000)
         return execute_strix(request.form)
@@ -97,6 +93,12 @@ def download_dot():
 def download_pdf():
     return send_file(
         app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'LearnedModel_{}.pdf'.format(session['number']), 
+        as_attachment=True)
+
+@app.route('/download/svg')
+def download_svg():
+    return send_file(
+        app.root_path + app.config['MODEL_FILES_DIRECTORY'] + 'StrixModel_{}.svg'.format(session['number']), 
         as_attachment=True)
 
 @app.route('/download/target')

@@ -206,7 +206,6 @@ $(document).ready(function() {
 	}
 	
 	$('#submit').click(function(){
-		document.querySelector('svg').innerHTML = "";
 		$('.downloader').addClass('visually-hidden');
 		$('.submit-text').addClass('visually-hidden');
 		$('ul.list-group').addClass('visually-hidden').html("");
@@ -268,7 +267,7 @@ $(document).ready(function() {
 					$('.downloader.target').addClass('visually-hidden');
 				}
 				document.querySelector('svg').innerHTML = data.img;
-				$('.figure .svg svg').attr('height', $('.figure .svg').attr('height'));
+				document.getElementById('img').src = "/static/temp_model_files/LearnedModel_"+ data.query_number + ".svg?count=" + count;
 				$('.figure-caption').html("");
 				let ul = $('ul.list-group');
 				ul.removeClass('visually-hidden');
@@ -343,8 +342,8 @@ $(document).ready(function() {
 				$('.downloader').removeClass('visually-hidden');
 				$('.submit-text').removeClass('visually-hidden');
 				$('.loading').addClass('visually-hidden');
-				document.getElementById('img').src = "/static/temp_model_files/StrixModel.svg?count=" + count;
-				$('.figure-caption').html("");
+				document.getElementById('img').src = "/static/temp_model_files/" + data.svg + "?count=" + count;
+				$('.figure-caption').html(data.msg);
 			}
 		});
 	});

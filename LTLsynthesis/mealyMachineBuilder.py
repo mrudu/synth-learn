@@ -44,7 +44,7 @@ def generalization_algorithm(premealy_machine, merging_strategy, UCBWrapper):
 		s = get_state_from_rank(rank_state_dict[i], states)
 		logger.debug("Checking state {} with rank {}".format(
 			s.state_id, s.rank))
-		logger.debug("Rant state dict: " + str(rank_state_dict))
+		logger.debug("Rank state dict: " + str(rank_state_dict))
 		merge_pairs = get_compatible_nodes(states, s, exclude_pairs)
 		merge_pairs = sorted(merge_pairs, key=functools.cmp_to_key(merging_strategy))
 		
