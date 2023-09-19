@@ -1,0 +1,30 @@
+{% extends 'example.html' %}
+
+{% block example_content %}
+	<p class="introduction">
+		In this example, we consider three processes P and Q that perform operations on/interacts with a critical section. Our goal is to synthesize an efficient arbiter which will control access of these processes to the critical section.
+	</p>
+	<h4 class="text-dark">Design Specifications/Requirements</h4>
+	<p>
+		To synthesize an efficient arbiter, we must express the precise design specifications. We can express these specifications formally in Linear Temporal Logic (LTL).
+		The atomic propositions <span class="LTL">p, q</span> represent the requests made by processes P and Q.
+		The atomic propositions <span class="LTL">gp, gq</span> represent the accesses granted to P and Q.
+		We classify the design specifications as <b>Safety</b> and <b>Functionality/Fairness</b>.
+	</p>
+	<div class="row">
+		<div class="col-auto col-md-6">
+			<h5 class="text-dark">Safety Specifications</h5>
+			<p>
+				We must ensure that no two processes can access the critical section at the same time. We can express in LTL as:
+				<span class="LTL">G (!gp & !gq)</span>
+			</p>
+		</div>
+		<div class="col-auto col-md-6">
+			<h5 class="text-dark">Functionality Specifications</h5>
+			<p>
+				The arbitrer must ensure fairness, i.e., every request made by any process must be eventually granted. We can express in LTL as:
+				<span class="LTL">G (p -> F gp) & G (q -> F gq)</span>
+			</p>
+		</div>
+	</div>
+{% endblock example_content %}

@@ -1,5 +1,16 @@
 {% extends 'base.html' %}
 
+{% block js %}
+	<script type="text/javascript" src="{{ url_for('static', filename='js/codemirror/codemirror.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/codemirror/addon/simple.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/codemirror/addon/matchbrackets.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/codemirror/addon/closebrackets.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/codemirror/addon/placeholder.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/codemirror/ltl.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/helpers.js') }}"></script>
+	<link href="{{ url_for('static', filename='css/codemirror.min.css') }}" rel="stylesheet">
+{% endblock js %}
+
 {% block content %}
 <div class="row">
 	<div class="col-4">

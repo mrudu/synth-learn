@@ -1,0 +1,14 @@
+{
+	"twoarbiter": {
+		"title": "Arbiter with Two Processes",
+		"subtitle": "Generating Mealy Machine that arbitrates the access to the critical section to two processes.",
+		"html": "twoArbiter.html",
+		"url": "/documentation/twoarbiter"
+	},
+	"threearbiter": {
+		"title": "Arbiter with Three Processes",
+		"subtitle": "Generating Mealy Machine that arbitrates the access to the critical section to three Processes.",
+		"html": "threeArbiter.html",
+		"url": "/documentation/threearbiter"
+	}
+}

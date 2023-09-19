@@ -1,7 +1,7 @@
 from LTLsynthesis import app
 from flask import request
 from flask import render_template, send_file, jsonify, session
-
+from flask import Flask
 from LTLsynthesis.RevampCode.algorithm import build_mealy
 from LTLsynthesis.RevampCode.utils import save_mealy_machile
 import random
@@ -83,6 +83,14 @@ def execute():
     else:
         return render_template('AcaciaSynth.html', 
             LTL_formula="Nothing", type="acacia")
+
+@app.route('/documentation/<example>', methods=['GET'])
+def execute_example(example):
+    file_name = app.root_path + '/examples.json'
+    with open(file_name) as example_json:
+        examples = json.load(example_json)
+    return render_template('Documentation/{}'.format(examples[
+        example]['html']), examples=examples, exampleName=example)
 
 @app.route('/strix', methods=['GET', 'POST'])
 def execute_strix_route():
