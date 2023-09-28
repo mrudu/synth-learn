@@ -1,11 +1,11 @@
-from aalpy.utils.FileHandler import visualize_automaton, \
-save_automaton_to_file, load_automaton_from_file
+from aalpy.utils.FileHandler import save_automaton_to_file
 from aalpy.automata import MealyState, MealyMachine
 from LTLsynthesis.RevampCode.ucbHelperFunctions import is_safe,\
 contains, get_transition_counting_function
 import spot
 import buddy
 from flask import session
+import functools
 
 def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
 	for type in file_type:
@@ -60,6 +60,26 @@ def compare_cfs(cf_1, cf_2):
 		return 1
 	else:
 		return 0
+
+def mergeEdges(mealy_machine: MealyMachine, ucb):
+	for state in mealy_machine.states:
+		common_outputs = set(["{}#{}".format(state.transitions[i].index, 
+			state.output_fun[i]) for i in state.transitions.keys()])
+		merge_transitions = dict()
+		merge_outputs = dict()
+		for state_output in common_outputs:
+			state_index, output = state_output.split('#')
+			state_index = int(state_index)
+			inputs = [str_to_bdd(i, ucb) for i,o in 
+				state.output_fun.items() if o == output and 
+				state.transitions[i].index == state_index]
+			merged_input = bdd_to_str(functools.reduce(
+				lambda a,b: a | b, inputs))
+			merge_transitions[merged_input] = mealy_machine.states[
+				state_index]
+			merge_outputs[merged_input] = output
+		state.transitions = merge_transitions
+		state.output_fun = merge_outputs
 
 def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,
 	cfs = None):

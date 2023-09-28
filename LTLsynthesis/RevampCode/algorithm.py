@@ -1,5 +1,5 @@
 from LTLsynthesis.RevampCode.computeWinningRegionsUCB import acacia_bonsai_command
-from LTLsynthesis.RevampCode.utils import checkCFSafety, expand_symbolic_trace
+from LTLsynthesis.RevampCode.utils import checkCFSafety, expand_symbolic_trace, mergeEdges
 from LTLsynthesis.RevampCode.rpni import build_PTA, rpni_mealy, pretty_print
 from LTLsynthesis.RevampCode.completeMealy import complete_mealy_machine
 
@@ -51,6 +51,8 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 	num_premachine_nodes = len(mealy_machine.states)
 	# Completing Mealy Machine
 	complete_mealy_machine(mealy_machine, ucb, antichain_vectors)
+
+	mergeEdges(mealy_machine, ucb)
 
 	pretty_print(mealy_machine)
 
