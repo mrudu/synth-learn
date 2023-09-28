@@ -1,12 +1,24 @@
 {% extends "LTLForm.html" %}
 
 {% block title %} Synth-Learn Tool: Synthesis With A Touch Of User Interaction {% endblock %}
-{% block subtitle %} Synth-Learn is a new tool for reactive LTL synthesis guided by user-generated traces. It uses Acacia-Bonsai tool to solve the plain LTL synthesis problem and builds the Mealy-Machine that enforces the LTL specification and generalizes the traces provided by the user. (<a href="https://arxiv.org/abs/2301.10485"> More info </a>){% endblock %}
+{% block subtitle %}		
+	<h4 class="fs-3 text-body-emphasis"> {{ self.title() }} </h4>
+	<p class="col fs-5">Synth-Learn is a new tool for reactive LTL synthesis guided by user-generated traces. It uses Acacia-Bonsai tool to solve the plain LTL synthesis problem and builds the Mealy-Machine that enforces the LTL specification and generalizes the traces provided by the user.</p>
+	<div class="d-flex gap-3 lead fw-normal">
+		<a class="icon-link" href="https://arxiv.org/abs/2301.10485"> More info </a>
+	</div>
+{% endblock %}
 {% block traces %}
+	<fieldset id="kvalue">
+		<div class="mb-3" id="kvalue-div">
+			<label for="kvalue_input" class="form-label">Value of k</label>
+			<input name="kvalue" class="form-control" id="kvalue_input" placeholder="2">
+		</div>
+	</fieldset>
 	<fieldset id="traces">
 		<div class="mb-3">
 			<label for="traces_textarea" class="form-label">Traces</label>
-			<textarea style="width: 100%; display: none;" name="traces" id="traces_textarea" placeholder="request_0 & request_1.grant_0 & !grant_1;!request_0 & !request_1.!grant_0 & grant_1"></textarea>
+			<textarea style="width: 100%; display: none;" name="traces" id="traces_textarea" placeholder="Enter traces here (with format: <input>.<output>.<input>.<output>...)"></textarea>
 		</div>
 	</fieldset>
 	<fieldset id="target">
@@ -36,14 +48,14 @@
 		</ul>
 	</div>
 	<div class="row mb-3">
-		<div class="col-auto visually-hidden downloader">
+		<!-- <div class="col-auto visually-hidden downloader">
 			<a class="btn btn-primary" href="download/dot" role="button">Download DOT</a>
-		</div>
+		</div> -->
 		<div class="col-auto visually-hidden downloader">
 			<a class="btn btn-primary" href="download/pdf" role="button">Download PDF</a>
 		</div>
-		<div class="col-auto visually-hidden downloader target">
+		<!-- <div class="col-auto visually-hidden downloader target">
 			<a class="btn btn-primary" href="download/target" role="button">Download Target</a>
-		</div>
+		</div> -->
 	</div>
 {% endblock footer %}

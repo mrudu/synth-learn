@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %} Documentation: Home Page {% endblock %}
+{% block subtitle %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-5 text-center">
+	<h1 class="display-5 fw-bold text-body-emphasis"> SynthLearn: <small class="text-body-secondary fw-normal">Tool for User-Guided Synthesis</small></h1>
+	<div class="col-md-8 fs-4 mx-auto">
+		<p class="mb-4 lead">
+			We interact with the user to navigate the infinite space of <i> "correct solutions"</i> to find the best-suited correct response.
+			Formally, we take as input an LTL specification and a set of positive examples.
+			We then combine automata learning (RPNI) with formal methods (LTL synthesis) to synthesize a mealy machine.
+		</p>
+	</div>
+	<div class="d-grid gap-2 d-md-flex justify-content-md-center">
+        <a class="btn btn-primary btn-lg px-4 gap-3" href="/">Try Online Demo</a>
+	</div>
+</div>
+<div class="container px-4 py-5" id="featured-3">
+	<h2 class="pb-2 border-bottom">A few case-studies:</h2>
+	<div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+		{% for example in examples.keys() %}
+		{% if example != exampleName %}
+		<div class="feature col">
+			<div class="card" style="height:100%;">
+				<div class="card-body">
+					<h4 class="fs-3 text-body-emphasis">{{ examples[example].title }}</h4>
+					<p class="card-text">{{ examples[example].subtitle }}</p>
+				</div>
+				<div class="card-footer">
+				    <a class="card-link" href="{{ examples[example].url }}">Learn More</a>
+			    </div>
+		    </div>
+		</div>
+		{% endif %}
+		{% endfor %}
+	</div>
+</div>
+{% endblock %}

@@ -1,14 +1,26 @@
 {
 	"twoarbiter": {
 		"title": "Arbiter with Two Processes",
-		"subtitle": "Generating Mealy Machine that arbitrates the access to the critical section to two processes.",
+		"subtitle": "Controller to arbitrate access of two processes to critical section.",
 		"html": "twoArbiter.html",
 		"url": "/documentation/twoarbiter"
 	},
 	"threearbiter": {
 		"title": "Arbiter with Three Processes",
-		"subtitle": "Generating Mealy Machine that arbitrates the access to the critical section to three Processes.",
+		"subtitle": "Controller to arbitrate access of three processes to critical section.",
 		"html": "threeArbiter.html",
 		"url": "/documentation/threearbiter"
+	},
+	"towercrane": {
+		"title": "Tower Cranes",
+		"subtitle": "System with multiple cranes and an overlapping section access arbitrated by controller",
+		"html": "towercrane.html",
+		"url": "/documentation/towercrane"
+	},
+	"index": {
+		"title": "SynthLearn: Tool for User-Guided Synthesis",
+		"subtitle": "Combining automata learning with formal methods",
+		"html": "index.html",
+		"url": "/documentation/index"
 	}
 }

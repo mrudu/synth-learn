@@ -81,8 +81,16 @@ def execute():
             target_file = request.files['target']
         return execute_algorithm(request.form, target_file)
     else:
-        return render_template('AcaciaSynth.html', 
+        return render_template('SynthLearn.html', 
             LTL_formula="Nothing", type="acacia")
+
+# @app.route('/documentation/', methods=['GET'])
+# def execute_example():
+#     file_name = app.root_path + '/examples.json'
+#     with open(file_name) as example_json:
+#         examples = json.load(example_json)
+#     return render_template('Documentation/index.html', 
+#         examples=examples, exampleName='index')
 
 @app.route('/documentation/<example>', methods=['GET'])
 def execute_example(example):
