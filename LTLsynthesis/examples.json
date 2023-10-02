@@ -1,0 +1,37 @@
+{
+	"twoarbiter": {
+		"title": "Arbiter with Two Processes",
+		"subtitle": "Controller to arbitrate access of two processes to critical section.",
+		"html": "twoArbiter.html",
+		"id": "SimpleArbiter2",
+		"url": "/documentation/twoarbiter"
+	},
+	"threearbiter": {
+		"title": "Arbiter with Three Processes",
+		"subtitle": "Controller to arbitrate access of three processes to critical section.",
+		"html": "threeArbiter.html",
+		"id": "SimpleArbiter3",
+		"url": "/documentation/threearbiter"
+	},
+	"towercrane": {
+		"title": "Tower Cranes",
+		"subtitle": "System with multiple cranes and an overlapping section access arbitrated by controller",
+		"html": "towercrane.html",
+		"id": "CraneController2",
+		"url": "/documentation/towercrane"
+	},
+	"liftfloor": {
+		"title": "Lift Floors",
+		"subtitle": "Controller arbitrates movement of elevator between two floors",
+		"html": "liftfloor.html",
+		"id": "LiftFloor2",
+		"url": "/documentation/liftfloor"
+	},
+	"index": {
+		"title": "SynthLearn: Tool for User-Guided Synthesis",
+		"subtitle": "Combining automata learning with formal methods",
+		"html": "index.html",
+		"url": "/documentation/index",
+		"id": "ignore"
+	}
+}

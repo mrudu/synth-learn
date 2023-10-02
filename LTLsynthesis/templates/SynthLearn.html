@@ -1,0 +1,56 @@
+{% extends "LTLForm.html" %}
+
+{% block title %} Synth-Learn Tool: Synthesis With A Touch Of User Interaction {% endblock %}
+{% block subtitle %}		
+	<h4 class="fs-3 text-body-emphasis"> {{ self.title() }} </h4>
+	<p class="col fs-5">Synth-Learn is a new tool for reactive LTL synthesis guided by user-generated traces. It uses Acacia-Bonsai tool to solve the plain LTL synthesis problem and builds the Mealy-Machine that enforces the LTL specification and generalizes the traces provided by the user.</p>
+	<div class="d-flex gap-3 lead fw-normal">
+		<a class="icon-link" href="https://arxiv.org/abs/2301.10485"> More info </a>
+	</div>
+{% endblock %}
+{% block traces %}
+	<fieldset id="kvalue">
+		<div class="mb-3" id="kvalue-div">
+			<label for="kvalue_input" class="form-label">Value of k</label>
+			<input name="kvalue" class="form-control" id="kvalue_input" placeholder="2">
+		</div>
+	</fieldset>
+	<fieldset id="traces">
+		<div class="mb-3">
+			<label for="traces_textarea" class="form-label">Traces</label>
+			<textarea style="width: 100%; display: none;" name="traces" id="traces_textarea" placeholder="Enter traces here (with format: <input>.<output>.<input>.<output>...)"></textarea>
+		</div>
+	</fieldset>
+	<fieldset id="target">
+		<div class="mb-3">
+			<label for="target_file" class="form-label">Target File</label>
+			<input class="form-control" type="file" id="target_file" name="target">
+		</div>
+	</fieldset>
+	<fieldset class="row mb-3">
+		<div class="col-auto">
+			<button type="button" class="btn btn-primary" id="submit">
+				<span class="spinner-border spinner-border-sm visually-hidden loading" role="status" aria-hidden="true"></span>
+				<span class="visually-hidden loading">Loading...</span>
+				<span class="submit-text">Submit</span>
+			</button>
+		</div>
+	</fieldset>
+{% endblock traces %}
+
+{% block footer %}
+<div class="card container-fluid visually-hidden downloader p-0">
+	<div class="card-header"> RESULT: <span id="realizability"></span></div>
+	<img src="" class="card-img-top" id="img">
+	<div class="card-body row">
+		<div class="col-auto me-auto">
+			<p class="card-text">
+				Comments: <span id="message"></span>
+			</p>
+		</div>
+		<div class="col-auto">
+			<a href="download/pdf" class="btn btn-primary "><i class="bi bi-arrow-down-circle"></i></a>
+		</div>
+	</div>
+</div>
+{% endblock footer %}

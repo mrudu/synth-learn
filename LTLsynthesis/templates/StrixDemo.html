@@ -1,8 +1,13 @@
 {% extends "LTLForm.html" %}
 
 {% block title %} Strix Online Demo {% endblock %}
-{% block subtitle %} Strix is a new tool for reactive LTL synthesis combining a direct translation of LTL formulas into deterministic parity automata (DPA) and an efficient, multi-threaded explicit state solver for parity games.
-<a href="https://strix.model.in.tum.de/">More info.</a> {% endblock %}
+{% block subtitle %} 
+	<h4 class="fs-3 text-body-emphasis"> {{ self.title() }} </h4>
+	<p class="col-lg-8 fs-5">Strix is a new tool for reactive LTL synthesis combining a direct translation of LTL formulas into deterministic parity automata (DPA) and an efficient, multi-threaded explicit state solver for parity games.</p>
+	<div class="d-flex gap-3 justify-content-center lead fw-normal">
+		<a class="icon-link" href="https://strix.model.in.tum.de/">More info.</a>
+	</div>
+{% endblock %}
 {% block traces %}
 	<fieldset id="traces" style="display: None">
 		<div class="mb-3">

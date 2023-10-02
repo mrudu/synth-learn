@@ -1,0 +1,9 @@
+{% extends 'example.html' %}
+
+{% block example_content %}
+	<p class="introduction">
+		In this example, we consider a system that is composed of three tower cranes, where each crane is operated through a control panel. The safety of the entire system relies on a central controller that will arbitrate the movements of the tower cranes to avoid collisions. This is done by ensuring that no two cranes enter the exclusion sections at the same time (see ExSect1 and ExSect2 in Fig. 1).
+		
+		Additionally, the central controller will be fair to the cranes in the sense that it will not prevent the cranes to enter those exclusion sections indefinitely, in order to allow the cranes to always eventually move from any position <i>x</i> to another position.
+	</p>
+{% endblock example_content %}
