@@ -17,7 +17,7 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 
 	# LTL Formula not safe with UCB<k_max
 	if ucb is None:
-		return None
+		return None, {'realizable': False, 'message': 'Check formula and try again?'}
 
 	# expanding symbolic traces
 	expanded_examples = []
@@ -41,8 +41,8 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 			antichain_vectors, cfs)
 
 	# Examples not safe with UCB<k_max
-	if ucb is None:
-		return None
+	if not safe:
+		return None, {'realizable': False, 'message': 'Check examples and try again?'}
 
 	# Building Mealy Machine with RPNI algorithm
 	# returns Partially Complete Mealy Machine
@@ -57,7 +57,8 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 	pretty_print(mealy_machine)
 
 	return mealy_machine, {'traces': examples,
-	'num_premachine_nodes': num_premachine_nodes, 'k': k}
+	'num_premachine_nodes': num_premachine_nodes, 'k': k, 
+	'realizable': True, 'message': ''}
 
 def build_strix(LTL_formula, I, O, app):
 	src_file = app.config['STRIX_TOOL']

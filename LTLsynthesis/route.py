@@ -55,7 +55,9 @@ def execute_algorithm(data, target_file):
     svg_file = ''.join(svg_file.split('\n')[6:])
     return {
         'query_number': session['number'], 
-        'traces': stats['traces']
+        'traces': stats['traces'],
+        'realizable': stats['realizable'],
+        'message': stats['message']
    }, 200
 
 def execute_strix(data):
@@ -81,8 +83,11 @@ def execute():
             target_file = request.files['target']
         return execute_algorithm(request.form, target_file)
     else:
+        file_name = app.root_path + '/examples.json'
+        with open(file_name) as example_json:
+            examples = json.load(example_json)
         return render_template('SynthLearn.html', 
-            LTL_formula="Nothing", type="acacia")
+            type="acacia", examples=examples)
 
 # @app.route('/documentation/', methods=['GET'])
 # def execute_example():

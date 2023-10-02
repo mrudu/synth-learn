@@ -32,34 +32,62 @@ def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors):
 	while len(blue) > 0: # O(n^4)
 		# Storing copy of old machine in case of failed merges
 		old_mealy_machine = copy.deepcopy(mealy_machine) # O(n^2)?
+		print("________________OLDCOPY________________")
+		pretty_print(old_mealy_machine)
+		print("________________OLDCOPY________________")
 		q_blue = blue.pop() # O(1)
 		canBeMerged = False # O(1)
 
 		# Finding a red state to merge blue state
 		for q_red in red: # O(n^3)
 			# Testing if merge with q_red state is sucessful
-			merge(mealy_machine, mealy_machine.states[q_red], 
-				mealy_machine.states[q_blue])
-			if checkCFSafety(mealy_machine, ucb, antichain_vectors)[0]: # O(n)
+			print("testing merge {} and {}".format(q_red, q_blue))
+			if merge(mealy_machine, mealy_machine.states[q_red], 
+				mealy_machine.states[q_blue]) and checkCFSafety(
+				mealy_machine, ucb, antichain_vectors)[0]: # O(n)
 				canBeMerged = True # O(1)
-				# Merge successful. Add new red state neighbours to
-				# blue (resulting from merge)
+				print("Merge successful. Add new {} state neighbours to blue (resulting from merge)".format(q_red))
 				for qr in red: # O(n^2)
 					for q in mealy_machine.states[qr].transitions.values(): # O(d)
 						if q.index not in red: # O(n)
 							blue.add(q.index)
+				pretty_print(mealy_machine)
+				print("________________OLDCOPY________________")
+				pretty_print(old_mealy_machine)
+				print("________________OLDCOPY________________")
+				print("red: {}".format(red))
+				print("blue: {}".format(blue))
 				break
 			# Handling failed merges and restoring unmerged state
 			else:
+				print("Failed merge: reverting")
+				print("________________OLDCOPY________________")
+				pretty_print(old_mealy_machine)
+				print("________________OLDCOPY________________")
+				print("________________NEWCOPY________________")
+				pretty_print(mealy_machine)
+				print("________________NEWCOPY________________")
 				mealy_machine = copy.deepcopy(old_mealy_machine)
+				print("________________RESETCOPY________________")
+				pretty_print(mealy_machine)
+				print("________________RESETCOPY________________")
+				print("red: {}".format(red))
+				print("blue: {}".format(blue))
 		
 		# If cant be merged with any red, make blue as red
 		if not canBeMerged:
 			if q_blue not in red:
 				red.append(q_blue)
 				blue.update([q.index for q in mealy_machine.states[q_blue
-					].transitions.values()])
+					].transitions.values() if q not in red])
+			print("Merge of {} not possible. Making red".format(q_blue))
+			pretty_print(mealy_machine)
+			print("red: {}".format(red))
+			print("blue: {}".format(blue))
 	prune_machine(mealy_machine)
+	print("rpni done")
+	print(checkCFSafety(mealy_machine, ucb, antichain_vectors)[0])
+	pretty_print(mealy_machine)
 	return mealy_machine
 
 # Prune Unreachable Nodes
@@ -84,10 +112,10 @@ def pretty_print(mealy_machine):
 	while j < len(mealy_machine.states):
 		state = mealy_machine.states[j]
 		j += 1
-		print(state.state_id)
+		print("{}: {}".format(state.index, state.state_id))
 		for i in state.transitions.keys():
-			print("{} -({}/{})-> {}".format(state.state_id, i, 
-				state.output_fun[i], state.transitions[i].state_id))
+			print("{} -({}/{})-> {}".format(state.index, i, 
+				state.output_fun[i], state.transitions[i].index))
 
 
 # Building the prefix tree automata
@@ -116,4 +144,5 @@ def build_PTA(examples):
 				list_states.append(new_state)
 				state = new_state
 	mealyTree = MealyMachine(root, list_states)
+	pretty_print(mealyTree)
 	return mealyTree
