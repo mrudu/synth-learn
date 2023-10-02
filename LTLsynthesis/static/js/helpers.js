@@ -266,7 +266,6 @@ $(document).ready(function() {
 				if (!showTarget) {
 					$('.downloader.target').addClass('visually-hidden');
 				}
-				document.querySelector('svg').innerHTML = data.img;
 				document.getElementById('img').src = "/static/temp_model_files/LearnedModel_"+ data.query_number + ".svg?count=" + count;
 				$('.figure-caption').html("");
 				let ul = $('ul.list-group');
