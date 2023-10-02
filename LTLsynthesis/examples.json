@@ -17,7 +17,7 @@
 		"title": "Tower Cranes",
 		"subtitle": "System with multiple cranes and an overlapping section access arbitrated by controller",
 		"html": "towercrane.html",
-		"id": "CraneController2",
+		"id": "TowerCranes2",
 		"url": "/documentation/towercrane"
 	},
 	"liftfloor": {

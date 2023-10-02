@@ -2,7 +2,7 @@ from LTLsynthesis import app
 from flask import request
 from flask import render_template, send_file, jsonify, session
 from flask import Flask
-from LTLsynthesis.RevampCode.algorithm import build_mealy
+from LTLsynthesis.RevampCode.algorithm import build_mealy, build_strix
 from LTLsynthesis.RevampCode.utils import save_mealy_machile
 import random
 import json
@@ -67,7 +67,9 @@ def execute_strix(data):
     outputs = data['outputs']
     outputs = list(map(str.strip, outputs.split(',')))
 
-    m = build_strix(data['formula'], inputs, outputs)
+    directory = app.root_path + app.config['MODEL_FILES_DIRECTORY']
+
+    m = build_strix(data['formula'], inputs, outputs, app)
     return jsonify({
         'msg': m['realizable'],
         'img': m['automata'],
@@ -111,7 +113,10 @@ def execute_strix_route():
         session['number'] = random.randint(100, 1000)
         return execute_strix(request.form)
     else:
-        return render_template('StrixDemo.html', LTL_formula="Nothing", type="strix")
+        file_name = app.root_path + '/examples.json'
+        with open(file_name) as example_json:
+            examples = json.load(example_json)
+        return render_template('StrixDemo.html', examples=examples, type="strix")
 
 @app.route('/download/dot')
 def download_dot():
