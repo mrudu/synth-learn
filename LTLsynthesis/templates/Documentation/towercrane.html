@@ -41,6 +41,7 @@
 				</div>
 			</li>
 		</ol>
+	</p>
 	<h4 class="text-dark">Design Specifications/Requirements</h4>
 	<p>
 		To synthesize an efficient arbiter, we must express the precise design specifications. We can express these specifications formally in Linear Temporal Logic (LTL).
@@ -49,19 +50,19 @@
 	<div class="row">
 		<div class="col-auto col-md-6">
 			<h5 class="text-dark">Safety Specifications</h5>
-			<ol class="list-group list-group-numbered list-group-flush">
+			<ol class="list-group list-group-numbered">
 				<li class="list-group-item d-flex justify-content-between align-items-start">
 					<div class="ms-2 me-auto">
-						<h5 class="fw-bold">Mutual Exclusion Condition:</h5>
+						<h6 class="fw-bold">Mutual Exclusion Condition:</h6>
 						<p class="mb-1">We must ensure that no two cranes can access the critical section at the same time. We can express in LTL as:</p>
-						<p class="fs-5 font-monospace text-success">G (!g1 & !g2)</p>
+						<p class="fs-6 font-monospace text-success">G (!g1 & !g2)</p>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
 					<div class="ms-2 me-auto">
-						<h5 class="fw-bold">Release Holds Grant:</h5>
+						<h6 class="fw-bold">Release Holds Grant:</h6>
 						<p class="mb-1">We must ensure that once the crane has access to the critical section, then it must retain its acess until it chooses release the access to the critical section. We can express in LTL as:</p>
-						<p class="fs-5 font-monospace text-success">G (g(i) => (g(i) U l(i)))</p>
+						<p class="fs-6 font-monospace text-success">G (g(i) => (g(i) U l(i)))</p>
 					</div>
 				</li>
 			</ol>
@@ -71,9 +72,9 @@
 			<ol class="list-group list-group-numbered">
 				<li class="list-group-item d-flex justify-content-between align-items-start">
 					<div class="ms-2 me-auto">
-						<h5 class="fw-bold">Fairness:</h5>
+						<h6 class="fw-bold">Fairness:</h6>
 						<p class="mb-1">The arbitrer must ensure fairness, i.e., every request made by any crane must be eventually granted. We can express in LTL as:</p>
-						<p class="fs-5 font-monospace text-success">G (r(i) -> F g(i))</p>
+						<p class="fs-6 font-monospace text-success">G (r(i) -> F g(i))</p>
 					</div>
 				</li>
 			</ol>
