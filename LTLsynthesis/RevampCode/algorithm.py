@@ -3,6 +3,7 @@ from LTLsynthesis.RevampCode.utils import checkCFSafety, expand_symbolic_trace, 
 from LTLsynthesis.RevampCode.rpni import build_PTA, rpni_mealy, pretty_print
 from LTLsynthesis.RevampCode.completeMealy import complete_mealy_machine
 import traceback, subprocess, spot
+from flask import session
 
 def build_mealy(examples, formula, inputs, outputs, app, k=1):
 	# arbitrarily setting k_max as a function of k
@@ -77,7 +78,7 @@ def build_strix(LTL_formula, I, O, app):
 		for a in spot.automata('\n'.join(automata_lines[1:])):
 			ucb = a
 		with open(app.root_path + app.config['MODEL_FILES_DIRECTORY'] + \
-			"StrixModel.svg", 'w') as f:
+			"StrixModel_{}.svg".format(session['number']), 'w') as f:
 			f.write(a.show().data)
 		return {'realizable': automata_lines[0], 'automata': a.show().data}
 	except Exception as e:
