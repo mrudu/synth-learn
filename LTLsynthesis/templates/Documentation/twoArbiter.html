@@ -1,5 +1,14 @@
 {% extends 'example.html' %}
-
+{% block subtitle %}
+<div class="container-fluid">
+	<h5 class="display-6 fw-bold text-body-emphasis"> Mutual Exclusion Arbiter: <small class="text-body-secondary fw-normal">With 2 Processes</small></h5>
+	<div class="col-md-12 fs-4 mx-auto">
+		<p class="mb-4 lead">
+			{{ examples[exampleName].subtitle }}
+		</p>
+	</div>
+</div>
+{% endblock %}
 {% block example_content %}
 	<p class="introduction">
 		In this example, we consider three processes P and Q that perform operations on/interacts with a critical section. Our goal is to synthesize an efficient arbiter which will control access of these processes to the critical section.
