@@ -1,0 +1,25 @@
+{% extends 'example.html' %}
+{% block subtitle %}
+<div class="container-fluid">
+	<h5 class="display-6 fw-bold text-body-emphasis"> Elevator/Lift: <small class="text-body-secondary fw-normal">With 2 Floors</small></h5>
+	<div class="col-md-12 fs-4 mx-auto">
+		<p class="mb-4 lead">
+			{{ examples[exampleName].subtitle }}
+		</p>
+	</div>
+</div>
+{% endblock %}
+{% block example_content %}
+	<p class="introduction">
+		In this example, we consider an elevator system that traverses between two floors.
+		Each floor has a button that can be pressed to <i>call</i> the elevator to that floor.
+		The movement of the elevator is controlled by the arbiter that ensures "liveness" property, i.e., every floor button pressed implies elevator will eventually "reach" the floor and "serve" that floor.
+	</p>
+	<h4 class="text-dark">Design Specifications/Requirements</h4>
+	<p>
+		To synthesize an efficient arbiter, we must express the precise design specifications. We can express these specifications formally in Linear Temporal Logic (LTL).
+		The atomic propositions <span class="LTL">p, q</span> represent the requests made by processes P and Q.
+		The atomic propositions <span class="LTL">gp, gq</span> represent the accesses granted to P and Q.
+		We classify the design specifications as <b>Safety</b> and <b>Functionality/Fairness</b>.
+	</p>
+{% endblock example_content %}

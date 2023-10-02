@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %} Documentation: Home Page {% endblock %}
-{% block subtitle %}{% endblock %}
-{% block content %}
+{% block subtitle %}
 <div class="container-fluid py-5 text-center">
 	<h1 class="display-5 fw-bold text-body-emphasis"> SynthLearn: <small class="text-body-secondary fw-normal">Tool for User-Guided Synthesis</small></h1>
 	<div class="col-md-8 fs-4 mx-auto">
@@ -16,6 +15,8 @@
         <a class="btn btn-primary btn-lg px-4 gap-3" href="/">Try Online Demo</a>
 	</div>
 </div>
+{% endblock %}
+{% block content %}
 <div class="container px-4 py-5" id="featured-3">
 	<h2 class="pb-2 border-bottom">A few case-studies:</h2>
 	<div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
