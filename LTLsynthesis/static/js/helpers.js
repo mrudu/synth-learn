@@ -143,27 +143,26 @@ $(document).ready(function() {
 			contentType: false,
 			cache: false,
 			data: data, 
-			success: function(data) {
+			success: function(success) {
 				afterQuery(showTarget);
 				document.getElementById('img').src = 
-					"/static/temp_model_files/LearnedModel_"+ data.query_number + 
+					"/static/temp_model_files/LearnedModel_"+ success.query_number + 
 					".svg?count=" + count;
-				$('.figure-caption').html("");
-				let ul = $('ul.list-group');
-				ul.removeClass('visually-hidden');
-				data.traces.forEach((item) => {
-					ul.append(`<li class="list-group-item">${item.join(
-						'.')}</li>`);
-				});
+				if (success.realizable) {
+					$('#realizability').html("REALIZABLE:" + success.message);
+				}
 			},
 			error: function(error) {
-				data = error.responseJSON
+				data = error.responseJSON;
 				afterQuery(showTarget);
-				addAlert(data.msg, !data.retry);
-				if (data.retry) {
-					$('.submit-text').html("Retry?");
-					$('input[name="kvalue"').val(data.k + 1);
+				document.getElementById('img').src = "";
+				addAlert(data.message, !data.retry);
+				if (!data.realizable) {
+					$('#realizability').html("UNREALIZABLE");
+				} else {
+					$('#realizability').html("REALIZABLE");
 				}
+				$('#message').html(data.message);
 			}
 		});
 	});

@@ -13,20 +13,15 @@
 
 {% block content %}
 <div class="row">
-	<div id="navbar-example3" class="col-2 h-100 flex-column align-items-stretch pe-4 border-end collapse">
-		<nav class="nav nav-pills flex-column">
-			<a class="nav-brand h5 text-body-emphasis">Examples: </a>
-			<a class="nav-link" href="#ltl" id="SimpleArbiter2">Simple Arbiter n=2 </a>
-			<a class="nav-link" href="#ltl" id="SimpleArbiter3">Simple Arbiter n=3 </a>
-			<a class="nav-link" href="#ltl" id="LiftFloor3">Lift floors=3 </a>
-			<a class="nav-link" href="#ltl" id="TowerCranes2">Tower Cranes=2 </a>
-			<a class="nav-link" href="#ltl" id="CraneController2">Crane Controller=2 </a>
-			<a class="nav-link" href="#ltl" id="TowerCranes3">Tower Cranes=3 </a>
-		</nav>
-	</div>
 	<div class="col-7" tabindex="0">
-		<div class="header">
-			<h4 class="fw-bolder text-body-emphasis"><span class="navbar-toggler"><button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-example3" aria-controls="navbar-example3" aria-expanded="true" aria-label="Toggle navigation"><i class="bi bi-justify"></i></button></span>Enter LTL Specification:</h4>
+		<div class="row">
+			<h4 class="col fw-bolder text-body-emphasis">
+				Enter LTL Specification:
+			</h4>
+			<div class="col justify-content-md-end">
+				<button class="float-end btn btn-light" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">Examples <i class="bi bi-plus-square"></i></button>
+				{% include 'FormExamples.html' %}
+			</div>
 		</div>
 		<form action="/" method="POST" class="row" id="{{ type }}-form" enctype="multipart/form-data">
 			<fieldset id="ltl">
@@ -52,7 +47,7 @@
 			{% block traces %} {% endblock traces %}
 		</form>
 	</div>
-	<div class="col-3">
+	<div class="col-5">
 		{% block footer %}{% endblock %}
 	</div>
 </div>

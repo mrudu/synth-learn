@@ -17,7 +17,7 @@
 		"outputs": "gp, gq, gr",
 		"traces": ["p & q & r.gp & !gq & !gr"]
 	},
-	"LiftFloor3": {
+	"LiftFloor2": {
 		"assumptions": [
 			"G(b0 -> (b0 W (f0 & serve)))",
 			"G(b1 -> (b1 W (f1 & serve)))"],

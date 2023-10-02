@@ -3,7 +3,12 @@
 {% block js %}{% endblock js %}
 
 {% block title %} Documentation: {{ examples[exampleName].title }} {% endblock title %}
-{% block subtitle %} {{ examples[exampleName].subtitle }} {% endblock subtitle %}
+s
+{% block subtitle %} 
+	<div class="container-fluid">
+	{{ examples[exampleName].subtitle }}
+	</div>
+{% endblock subtitle %}
 
 {% block content %}
 	<div class="row">
@@ -11,9 +16,11 @@
 			<div class="sidebar-sticky">
 				<ul class="nav flex-column">
 					{% for example in examples.keys() %}
+					{% if examples[example].id != "ignore" %}
 					<li class="nav-item">
 						<a class='nav-link {{ active if example == exampleName}}' href='{{ examples[example].url }}'>{{ examples[example].title }}</a>
 					</li>
+					{% endif %}
 					{% endfor %}
 					</li>
 				</ul>
