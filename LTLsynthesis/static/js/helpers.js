@@ -41,7 +41,8 @@ $(document).ready(function() {
 		data.set('k', k);
 
 		let traces = tracesEditor.getValue().trim();
-		data.set('traces', make_traces(traces));
+		if(traces.length > 0)
+			data.set('traces', make_traces(traces));
 
 		return data;
 	};
@@ -194,7 +195,7 @@ $(document).ready(function() {
 
 	$('#SimpleArbiter2').click(() => {setData('SimpleArbiter2')});
 	$('#SimpleArbiter3').click(() => {setData('SimpleArbiter3')});
-	$('#LiftFloor3').click(() => {setData('LiftFloor3')});
+	$('#LiftFloor2').click(() => {setData('LiftFloor2')});
 	$('#TowerCranes2').click(() => {setData('TowerCranes2')});
 	$('#TowerCranes3').click(() => {setData('TowerCranes3')});
 	$('#CraneController2').click(() => {setData('CraneController2')});

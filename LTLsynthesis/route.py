@@ -25,8 +25,11 @@ def execute_algorithm(data, target_file):
     
     # parsing traces
     traces = data['traces']
-    traces = traces.split('\n')
-    traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
+    if len(traces) > 0:
+        traces = traces.split('\n')
+        traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
+    else:
+        traces = []
 
     # k
     k = int(data['k'])

@@ -38,6 +38,8 @@ def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors):
 
 		# Finding a red state to merge blue state
 		for q_red in red: # O(n^3)
+			# Checking if red state is a prefix of blue state
+			# Required for completeness
 			if len(mealy_machine.states[q_red].state_id) > len(
 				mealy_machine.states[q_blue].state_id):
 				continue
