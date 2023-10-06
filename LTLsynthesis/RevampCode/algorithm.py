@@ -28,6 +28,8 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 
 	# building prefix tree automata
 	mealy_machine = build_PTA(expanded_examples)
+	if mealy_machine is None:
+		return None, {'realizable': False, 'message': 'Conflicting examples. Check examples and try again?'}
 
 	# check safety of PTA (examples)
 	# (The above is done to find appropriate k value for examples)

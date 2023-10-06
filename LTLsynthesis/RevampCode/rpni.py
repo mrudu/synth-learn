@@ -109,7 +109,9 @@ def build_PTA(examples):
 		for i in range(0, len(example), 2):
 			# propogate example down PTA
 			if example[i] in state.transitions.keys():
-				state = state.transitions[example[i]]
+				if example[i+1] != state.output_fun[example[i]]:
+					return None
+				state = state.transitions[example[i]] 
 			# reached leaf
 			else:
 				# create new state

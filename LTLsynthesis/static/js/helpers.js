@@ -150,7 +150,8 @@ $(document).ready(function() {
 					"/static/temp_model_files/LearnedModel_"+ success.query_number + 
 					".svg?count=" + count;
 				if (success.realizable) {
-					$('#realizability').html("REALIZABLE:" + success.message);
+					$('#realizability').html("REALIZABLE");
+					$('#message').html(success.message);
 				}
 			},
 			error: function(error) {
