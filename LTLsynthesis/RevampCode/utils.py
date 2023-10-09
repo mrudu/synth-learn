@@ -5,7 +5,9 @@ contains, get_transition_counting_function
 import spot
 import buddy
 from flask import session
-import functools
+import functools, time, logging
+
+logger = logging.getLogger('miscLogger')
 
 def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
 	for type in file_type:
@@ -41,8 +43,13 @@ def bdd_to_str(bdd_input):
 	return str(spot.bdd_to_formula(bdd_input))
 
 def initialize_cf(mealy_machine, num_states, ucb_init):
-	cfs = [[-1]*num_states]*len(mealy_machine.states)
-	cfs[mealy_machine.initial_state.index][ucb_init] = 0
+	cfs = []
+	for c in range(len(mealy_machine.states)):
+		cfs.append([-1]*num_states)
+	x = cfs[mealy_machine.initial_state.index]
+	print(x)
+	x[ucb_init] = 0
+	print(cfs)
 	return cfs
 
 def compare_cfs(cf_1, cf_2):
@@ -63,6 +70,7 @@ def compare_cfs(cf_1, cf_2):
 
 def mergeEdges(mealy_machine: MealyMachine, ucb):
 	for state in mealy_machine.states:
+		state.state_id = state.index
 		common_outputs = set(["{}#{}".format(state.transitions[i].index, 
 			state.output_fun[i]) for i in state.transitions.keys()])
 		merge_transitions = dict()
@@ -83,9 +91,9 @@ def mergeEdges(mealy_machine: MealyMachine, ucb):
 
 def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,
 	cfs = None):
-	if cfs is None:
-		cfs = initialize_cf(mealy_machine, ucb.num_states(), 
-		ucb.get_init_state_number())
+	
+	cfs = initialize_cf(mealy_machine, ucb.num_states(), 
+	ucb.get_init_state_number())
 	
 	# Checking safety of initial state
 	mm_init = mealy_machine.initial_state
@@ -102,10 +110,17 @@ def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,
 		state, target_state, edge_label = edges_to_visit.pop(0)
 		f1 = cfs[state.index]
 		f2 = cfs[target_state.index]
+		logger.debug("Source State : {}, CF: {}".format(state.state_id, f1))
+		logger.debug("Target State : {}, CF: {}".format(target_state.state_id, f2))
+		logger.debug("Edge: {}".format(edge_label))
 		
 		f_ = lowestUpperBound(get_transition_counting_function(ucb, f1,
 			edge_label), f2)
+		logger.debug("Transition CF: {}, LUB: {}".format(
+			get_transition_counting_function(ucb, f1,
+			edge_label), f_))
 		if not is_safe(antichain_vectors, f_):
+			logger.debug("Unsafe")
 			return False, cfs
 		if contains(f2, f_) and f_ != f2:
 			cfs[target_state.index] = f_;
@@ -113,4 +128,5 @@ def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,
 				edges_to_visit.append([target_state, 
 					target_state.transitions[j], str_to_bdd(j, ucb) & 
 					str_to_bdd(target_state.output_fun[j], ucb)])
+				logger.debug("Adding edge: {}, {}".format(target_state.state_id, j))
 	return True, cfs
