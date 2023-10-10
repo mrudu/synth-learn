@@ -1,142 +1,96 @@
-from CustomAALpy.FileHandler import visualize_automaton, save_automaton_to_file, load_automaton_from_file
-import logging
+from LTLsynthesis.RevampCode.computeWinningRegionsUCB import acacia_bonsai_command
+from LTLsynthesis.RevampCode.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
+from LTLsynthesis.RevampCode.rpni import build_PTA, rpni_mealy, pretty_print
+from LTLsynthesis.RevampCode.completeMealy import complete_mealy_machine
+import traceback, subprocess, spot, logging
 from flask import session
-from functools import reduce
-from LTLsynthesis.prefixTreeBuilder import build_prefix_tree, checkCFSafety
-from LTLsynthesis.mealyMachineBuilder import isCrossProductCompatible, generalization_algorithm
-from LTLsynthesis.completion_phase import complete_mealy_machine
-from LTLsynthesis.utilities import *
-from LTLsynthesis.UCBBuilder import UCB
-from LTLsynthesis import app
 
-import time
+logger = logging.getLogger("overallLogger")
 
-logger = logging.getLogger("misc-logger")
+def build_mealy(examples, formula, inputs, outputs, app, k, merging_strategy):
+	# arbitrarily setting k_max as a function of k
+	k_max = int(k*1.5) if k > 7 else 10
 
-def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):	
-	global ordered_inputs, bdd_inputs, ucb, UCBWrapper
+	# computing ucb and winning region using acacia
+	ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
+		outputs, k, app)
+	while ucb is None and k < k_max:
+		k += 1
+		ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
+		outputs, k, app)
+		logger.debug("UCB is unrealizable. Increasing k")
 
-	### STEP 1 ###
+	# LTL Formula not safe with UCB<k_max
+	if ucb is None:
+		return None, {'realizable': False, 'message': 'Check formula and try again?'}
 
-	# Check if K is appropriate
-	logger.debug("Checking if K is appropriate...")
+	# expanding symbolic traces
+	expanded_examples = []
+	for e in examples:
+		expanded_examples.extend(expand_symbolic_trace(e, ucb))
 
-	logger.debug("Checking if K is appropriate for LTL")
-	ts = time.time()
-	k_unsafe = True
-	UCBWrapper = UCB(k, LTL_formula, I, O)
-	k_max = max(int(k * 1.5), 10)
-	while UCBWrapper.ucb is None:
-		if k == k_max:
-			return None, {'msg': 'Specification unsafe for k={}'.format(k), 'retry': True, 'k': k}
-		if UCBWrapper.internal_error:
-			return None, {
-				'msg': 'Internal Server Error: ' + UCBWrapper.error_msg,
-				'retry': False,
-				'k': k
-			}
-		if UCBWrapper.formula_error:
-			return None, {
-				'msg': 'Parsing Formula Error: ' + UCBWrapper.error_msg,
-				'retry': False,
-				'k': k
-			}
-		logger.debug("LTL Specification is unsafe for k=" + str(k))
-		k = k + 1
-		UCBWrapper = UCB(k, LTL_formula, I, O)
-	
-	logger.debug("LTL Specification is safe for k=" + str(k))
-	bdd_inputs = UCBWrapper.bdd_inputs
-	ucb = UCBWrapper.ucb
+	# building prefix tree automata
+	mealy_machine = build_PTA(expanded_examples)
+	if mealy_machine is None:
+		return None, {'realizable': False, 'message': 'Conflicting examples. Check examples and try again?'}
 
-	# Build Prefix Tree Mealy Machine
-	logger.info("Building Prefix Tree...")
-	mealy_machine = build_prefix_tree(traces)
+	# check safety of PTA (examples)
+	# (The above is done to find appropriate k value for examples)
+	cfs = None
+	safe, cfs = checkCFSafety(mealy_machine, ucb, 
+		antichain_vectors, cfs)
+	print(antichain_vectors)
 
-	logger.info("Prefix Tree Mealy built")
+	while not safe and k < k_max:
+		k += 1
+		ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
+		outputs, k, app)
+		safe, cfs = checkCFSafety(mealy_machine, ucb, 
+			antichain_vectors, cfs)
 
-	# Check if K is appropriate for traces
-	logger.debug("Checking if K is appropriate for traces")
-	while k_unsafe:
-		if k == k_max:
-			return None, {'msg': 'Traces unsafe', 'retry': True, 'k': k}
-		initialize_counting_function(mealy_machine, UCBWrapper)
-		if checkCFSafety(mealy_machine):
-			logger.info("Traces is safe for k=" + str(k))
-			k_unsafe = False
-			break
-		k = k + 1
-		logger.debug("Traces is unsafe for k=" + str(k))
-		UCBWrapper = UCB(k, LTL_formula, I, O)
+	# Examples not safe with UCB<k_max
+	if not safe:
+		return None, {'realizable': False, 'message': 'Check examples and try again?'}
 
-	logger.info("Choosing K as " + str(k))
-
-	# Loading the target machine if it exists
-	target_machine = None
-	if len(target) > 0:
-		target_machine = load_automaton_from_file(target)
-		k_unsafe = True
-		while k_unsafe:
-			if k == k_max:
-				return None, {'msg': 'Target unsafe', 'retry': True, 'k': k}
-			initialize_counting_function(target_machine, UCBWrapper)
-			if checkCFSafety(target_machine):
-				logger.info("Target is safe for k=" + str(k))
-				k_unsafe = False
-				break
-			k = k + 1
-			logger.info("Target is unsafe for k=" + str(k))
-			UCBWrapper = UCB(k, LTL_formula, I, O)
-	
-	### STEP 2 ###
-	# Merge compatible nodes
-	logger.info("Phase 1: Merging compatible nodes in prefix tree...")
-	mealy_machine = generalization_algorithm(mealy_machine, sort_merge_cand_by_min_cf, UCBWrapper)
-	logger.info("Phase 1: Merge phase is complete")
-
-	save_mealy_machile(mealy_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "PreMachine", ['pdf'])
-	### STEP 2.5 ###
-	# Mark nodes in "pre-machine"
-	mark_nodes(mealy_machine)
-
-	logger.info("Phase 2: Completion Phase begins...")
+	# Building Mealy Machine with RPNI algorithm
+	# returns Partially Complete Mealy Machine
+	num_premachine_nodes = 0
+	if merging_strategy == "CF":
+		strategy = cfThenPrefix
+	else:
+		strategy = prefixThenCF
+	mealy_machine = rpni_mealy(mealy_machine, ucb, antichain_vectors, strategy)
 	num_premachine_nodes = len(mealy_machine.states)
-	### STEP 3 ###
-	# Complete mealy machine
-	complete_mealy_machine(mealy_machine, UCBWrapper)
-	logger.info("Took {} seconds to complete.".format(time.time() - ts))
-	logger.info("Phase 2: Completion Phase done")
-	if target_machine is not None:
-		isComp, cex = isCrossProductCompatible(target_machine, mealy_machine)
-		if not isComp:
-			logger.info('Counter example: ' + ".".join(cex))
-			traces.append(cex)
-			logger.info("Traces: "+ str(traces))
+	# Completing Mealy Machine
+	complete_mealy_machine(mealy_machine, ucb, antichain_vectors)
 
-			return build_mealy(
-				LTL_formula, 
-				I, 
-				O, traces, 
-				file_name, target, k)
-	if target_machine is not None:
-		save_mealy_machile(target_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "TargetModel", ['svg', 'pdf'])
-	save_mealy_machile(mealy_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "LearnedModel", ['dot'])
-	cleaner_display(mealy_machine, UCBWrapper.ucb)
-	save_mealy_machile(mealy_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "LearnedModel", ['svg', 'pdf'])
-	traces = shorten_traces(traces)
-	print_data(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper)
-	return mealy_machine, {'traces': traces, 'num_premachine_nodes': num_premachine_nodes, 'k': k}
+	mergeEdges(mealy_machine, ucb)
 
-def display_mealy_machine(mealy_machine, file_name, file_type="pdf"):
-	visualize_automaton(
-		mealy_machine,
-		path="examples/" + file_name + '_' + str(session['number']),
-		file_type="pdf"
-	)
-def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
-	for type in file_type:
-		save_automaton_to_file(
-			mealy_machine,
-			file_type=type,
-			path=file_name + '_' + str(session['number'])
-		)
+	pretty_print(mealy_machine)
+
+	return mealy_machine, {'traces': examples,
+	'num_premachine_nodes': num_premachine_nodes, 'k': k, 
+	'realizable': True, 'message': ''}
+
+def build_strix(LTL_formula, I, O, app):
+	src_file = app.config['STRIX_TOOL']
+	command = app.config['STRIX_COMMAND'].format(src_file, LTL_formula, 
+			",".join(I), ",".join(O))
+	try:
+		op = subprocess.run(command, shell=True, capture_output=True)
+		automata_lines = []
+		ucb = None
+		
+		for line in op.stdout.splitlines():
+			l = line.decode()
+			automata_lines.append(l)
+
+		for a in spot.automata('\n'.join(automata_lines[1:])):
+			ucb = a
+		with open(app.root_path + app.config['MODEL_FILES_DIRECTORY'] + \
+			"StrixModel_{}.svg".format(session['number']), 'w') as f:
+			f.write(a.show().data)
+		return {'realizable': automata_lines[0], 'automata': a.show().data}
+	except Exception as e:
+		traceback.print_exc()
+		return {'realizable': False, 'automata': 'Error'}
