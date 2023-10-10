@@ -70,7 +70,7 @@ def compare_cfs(cf_1, cf_2):
 
 def mergeEdges(mealy_machine: MealyMachine, ucb):
 	for state in mealy_machine.states:
-		state.state_id = state.index
+		state.state_id = str(state.index)
 		common_outputs = set(["{}#{}".format(state.transitions[i].index, 
 			state.output_fun[i]) for i in state.transitions.keys()])
 		merge_transitions = dict()
@@ -88,6 +88,24 @@ def mergeEdges(mealy_machine: MealyMachine, ucb):
 			merge_outputs[merged_input] = output
 		state.transitions = merge_transitions
 		state.output_fun = merge_outputs
+
+def cfThenPrefix(np_1, np_2):
+	s1, cf_1 = np_1
+	s2, cf_2 = np_2
+	score = compare_cfs(cf_1, cf_2)
+	if score is not 0:
+		return score
+	if s1.index > s2.index:
+		return 1
+	else:
+		return -1
+
+def sort_nodes(mealy_machine: MealyMachine, nodes, cfs):
+	node_cf_pair = []
+	for node in nodes:
+		node_cf_pair.append([mealy_machine.states[node], cfs[node]])
+	node_cf_pair = sorted(node_cf_pair, key=functools.cmp_to_key(cfThenPrefix))
+	return [np[0].index for np in node_cf_pair]
 
 def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,
 	cfs = None):

@@ -1,5 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.RevampCode.utils import checkCFSafety
+from LTLsynthesis.RevampCode.utils import checkCFSafety, sort_nodes
 import copy
 
 # Merge step of red and blue state
@@ -35,7 +35,8 @@ def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors):
 		q_blue = min(blue) # O(n)
 		blue.remove(q_blue) # O(1)
 		canBeMerged = False # O(1)
-
+		safety, cfs = checkCFSafety(mealy_machine, ucb, antichain_vectors) 
+		red = sort_nodes(mealy_machine, red, cfs)
 		# Finding a red state to merge blue state
 		for q_red in red: # O(n^3)
 			# Checking if red state is a prefix of blue state
