@@ -47,9 +47,7 @@ def initialize_cf(mealy_machine, num_states, ucb_init):
 	for c in range(len(mealy_machine.states)):
 		cfs.append([-1]*num_states)
 	x = cfs[mealy_machine.initial_state.index]
-	print(x)
 	x[ucb_init] = 0
-	print(cfs)
 	return cfs
 
 def compare_cfs(cf_1, cf_2):
@@ -100,11 +98,22 @@ def cfThenPrefix(np_1, np_2):
 	else:
 		return -1
 
-def sort_nodes(mealy_machine: MealyMachine, nodes, cfs):
+def prefixThenCF(np_1, np_2):
+	s1, cf_1 = np_1
+	s2, cf_2 = np_2
+	score = compare_cfs(cf_1, cf_2)
+	if s1.index > s2.index:
+		return 1
+	elif s1.index < s2.index:
+		return -1
+	else:
+		return compare_cfs(cf_1, cf_2)
+
+def sort_nodes(mealy_machine: MealyMachine, nodes, cfs, merging_strategy):
 	node_cf_pair = []
 	for node in nodes:
 		node_cf_pair.append([mealy_machine.states[node], cfs[node]])
-	node_cf_pair = sorted(node_cf_pair, key=functools.cmp_to_key(cfThenPrefix))
+	node_cf_pair = sorted(node_cf_pair, key=functools.cmp_to_key(merging_strategy))
 	return [np[0].index for np in node_cf_pair]
 
 def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,

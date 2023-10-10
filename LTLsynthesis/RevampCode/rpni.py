@@ -26,7 +26,7 @@ def fold(mealy_machine: MealyMachine, q_red: MealyState, q_blue: MealyState): # 
 # rpni
 '''Note, here, we store indices of states in red and blue sets to account for
 deep copy of mealy machine in case of failed merges.'''
-def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors):
+def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_strategy):
 	red = [mealy_machine.initial_state.index] # O(1)
 	blue = set([s.index for s in mealy_machine.initial_state.transitions.values()]) # O(n)
 	while len(blue) > 0: # O(n^4)
@@ -36,7 +36,7 @@ def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors):
 		blue.remove(q_blue) # O(1)
 		canBeMerged = False # O(1)
 		safety, cfs = checkCFSafety(mealy_machine, ucb, antichain_vectors) 
-		red = sort_nodes(mealy_machine, red, cfs)
+		red = sort_nodes(mealy_machine, red, cfs, merging_strategy)
 		# Finding a red state to merge blue state
 		for q_red in red: # O(n^3)
 			# Checking if red state is a prefix of blue state

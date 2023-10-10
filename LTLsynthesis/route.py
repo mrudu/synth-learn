@@ -36,18 +36,8 @@ def execute_algorithm(data, target_file):
 
     directory = app.root_path + app.config['MODEL_FILES_DIRECTORY']
 
-    # Target File (Not supported for now)
-    
-    if (len(target_file.filename) > 0) and (allowed_file(
-        target_file.filename)):
-        target_file.save(directory + "TargetModel_{}.dot".format(
-            session['number']))
-    elif len(target_file.filename) > 0:
-        print("Not a dot file!")
-        target_file.save(directory + target_file.filename)
-
     m, stats = build_mealy(traces, data['formula'], inputs, outputs,
-        app, k)
+        app, k, data['radioStrategy'])
     if m is None:
         return stats, 400
 
@@ -93,14 +83,6 @@ def execute():
             examples = json.load(example_json)
         return render_template('SynthLearn.html', 
             type="acacia", examples=examples)
-
-# @app.route('/documentation/', methods=['GET'])
-# def execute_example():
-#     file_name = app.root_path + '/examples.json'
-#     with open(file_name) as example_json:
-#         examples = json.load(example_json)
-#     return render_template('Documentation/index.html', 
-#         examples=examples, exampleName='index')
 
 @app.route('/documentation/<example>', methods=['GET'])
 def execute_example(example):

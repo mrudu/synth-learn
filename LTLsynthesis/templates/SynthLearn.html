@@ -9,6 +9,8 @@
 	</div>
 {% endblock %}
 {% block traces %}
+	<hr class="my-4">
+	<h4 class="mb-3"> Advanced Options</h4>
 	<fieldset id="kvalue">
 		<div class="mb-3" id="kvalue-div">
 			<label for="kvalue_input" class="form-label">Value of k</label>
@@ -21,12 +23,18 @@
 			<textarea style="width: 100%; display: none;" name="traces" id="traces_textarea" placeholder="Enter traces here (with format: <input>.<output>.<input>.<output>...)"></textarea>
 		</div>
 	</fieldset>
-	<fieldset id="target">
-		<div class="mb-3">
-			<label for="target_file" class="form-label">Target File</label>
-			<input class="form-control" type="file" id="target_file" name="target">
+	<fieldset id="strategyID">
+		<legend class="mb-3 h6 fw-normal">Choose Merging Strategy:</legend>
+		<div class="mb-3 form-check form-check-inline">
+			<label for="strategyPrefix" class="form-check-label">Prefix</label>
+			<input class="form-check-input" type="radio" name="radioStrategy" id="strategyPrefix"value="prefix" checked>
+		</div>
+		<div class="mb-3 form-check form-check-inline">
+			<label for="strategyCF" class="form-check-label">CF</label>
+			<input class="form-check-input" type="radio" name="radioStrategy" id="strategyCF" value="CF">
 		</div>
 	</fieldset>
+	<hr class="my-4">
 	<fieldset class="row mb-3">
 		<div class="col-auto">
 			<button type="button" class="btn btn-primary" id="submit">

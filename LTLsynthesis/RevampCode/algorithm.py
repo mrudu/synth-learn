@@ -1,11 +1,13 @@
 from LTLsynthesis.RevampCode.computeWinningRegionsUCB import acacia_bonsai_command
-from LTLsynthesis.RevampCode.utils import checkCFSafety, expand_symbolic_trace, mergeEdges
+from LTLsynthesis.RevampCode.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
 from LTLsynthesis.RevampCode.rpni import build_PTA, rpni_mealy, pretty_print
 from LTLsynthesis.RevampCode.completeMealy import complete_mealy_machine
-import traceback, subprocess, spot
+import traceback, subprocess, spot, logging
 from flask import session
 
-def build_mealy(examples, formula, inputs, outputs, app, k=1):
+logger = logging.getLogger("overallLogger")
+
+def build_mealy(examples, formula, inputs, outputs, app, k, merging_strategy):
 	# arbitrarily setting k_max as a function of k
 	k_max = int(k*1.5) if k > 7 else 10
 
@@ -16,6 +18,7 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 		k += 1
 		ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
 		outputs, k, app)
+		logger.debug("UCB is unrealizable. Increasing k")
 
 	# LTL Formula not safe with UCB<k_max
 	if ucb is None:
@@ -36,6 +39,7 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 	cfs = None
 	safe, cfs = checkCFSafety(mealy_machine, ucb, 
 		antichain_vectors, cfs)
+	print(antichain_vectors)
 
 	while not safe and k < k_max:
 		k += 1
@@ -51,7 +55,11 @@ def build_mealy(examples, formula, inputs, outputs, app, k=1):
 	# Building Mealy Machine with RPNI algorithm
 	# returns Partially Complete Mealy Machine
 	num_premachine_nodes = 0
-	mealy_machine = rpni_mealy(mealy_machine, ucb, antichain_vectors)
+	if merging_strategy == "CF":
+		strategy = cfThenPrefix
+	else:
+		strategy = prefixThenCF
+	mealy_machine = rpni_mealy(mealy_machine, ucb, antichain_vectors, strategy)
 	num_premachine_nodes = len(mealy_machine.states)
 	# Completing Mealy Machine
 	complete_mealy_machine(mealy_machine, ucb, antichain_vectors)
