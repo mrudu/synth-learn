@@ -1,7 +1,6 @@
 from aalpy.utils.FileHandler import save_automaton_to_file
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.RevampCode.ucbHelperFunctions import is_safe,\
-contains, get_transition_counting_function
+from LTLsynthesis.ucbHelperFunctions import is_safe, contains, get_transition_counting_function
 import spot
 import buddy
 from flask import session
@@ -59,10 +58,6 @@ def compare_cfs(cf_1, cf_2):
 		return -1
 	elif max(cf_1) > max(cf_2):
 		return 1
-	elif (sum(cf_1)) < (sum(cf_2)):
-		return -1
-	elif (sum(cf_1)) > (sum(cf_2)):
-		return 1
 	else:
 		return 0
 
@@ -91,9 +86,9 @@ def cfThenPrefix(np_1, np_2):
 	s1, cf_1 = np_1
 	s2, cf_2 = np_2
 	score = compare_cfs(cf_1, cf_2)
-	if score is not 0:
+	if score != 0:
 		return score
-	if s1.index > s2.index:
+	if len(s1.state_id) > len(s2.state_id):
 		return 1
 	else:
 		return -1
@@ -102,9 +97,9 @@ def prefixThenCF(np_1, np_2):
 	s1, cf_1 = np_1
 	s2, cf_2 = np_2
 	score = compare_cfs(cf_1, cf_2)
-	if s1.index > s2.index:
+	if len(s1.state_id) > len(s2.state_id):
 		return 1
-	elif s1.index < s2.index:
+	elif len(s1.state_id) < len(s2.state_id):
 		return -1
 	else:
 		return compare_cfs(cf_1, cf_2)
@@ -116,8 +111,7 @@ def sort_nodes(mealy_machine: MealyMachine, nodes, cfs, merging_strategy):
 	node_cf_pair = sorted(node_cf_pair, key=functools.cmp_to_key(merging_strategy))
 	return [np[0].index for np in node_cf_pair]
 
-def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors,
-	cfs = None):
+def checkCFSafety(mealy_machine: MealyMachine, ucb, antichain_vectors, cfs = None):
 	
 	cfs = initialize_cf(mealy_machine, ucb.num_states(), 
 	ucb.get_init_state_number())

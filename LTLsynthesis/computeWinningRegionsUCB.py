@@ -1,7 +1,7 @@
 import spot
 import subprocess
 import traceback
-from LTLsynthesis.RevampCode.ucbHelperFunctions import create_bdd_list
+from LTLsynthesis.ucbHelperFunctions import create_bdd_list
 import logging
 
 logger = logging.getLogger('UCBLogger')
