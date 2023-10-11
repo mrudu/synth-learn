@@ -1,7 +1,6 @@
-from src import app
+from run import app
 from flask import request
 from flask import render_template, send_file, jsonify, session
-from flask import Flask
 from src.algorithm import build_mealy, build_strix
 from src.utils import save_mealy_machile
 import random
@@ -78,7 +77,7 @@ def execute():
             target_file = request.files['target']
         return execute_algorithm(request.form, target_file)
     else:
-        file_name = app.root_path + '/examples.json'
+        file_name = app.root_path + '/src/examples.json'
         with open(file_name) as example_json:
             examples = json.load(example_json)
         return render_template('SynthLearn.html', 

@@ -1,6 +1,10 @@
-from LTLsynthesis import app
-import LTLsynthesis.route
+from flask import Flask
+app = Flask(__name__)
+app.config.from_pyfile('src/config.py')
+
+import src.route
 import sys
 from logging.config import fileConfig
 
-fileConfig('LTLsynthesis/logging_conf.ini')
+
+fileConfig('src/logging_conf.ini')

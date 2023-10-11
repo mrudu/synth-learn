@@ -12,14 +12,13 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='LTL',
+    name='SynthLearn',
     version='0.1.0',
-    description='Learn Model with LTL',
+    description='User-Guided LTL Synthesis Algorithm',
     long_description=readme,
     author='Mrudula Balachander',
     author_email='mrudula.balachander@ulb.be',
-    url='https://github.com/mrudu/acacia-bonsai-python',
+    url='https://github.com/mrudu/synth-learn',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )
-
