@@ -1,7 +1,7 @@
-from LTLsynthesis.computeWinningRegionsUCB import acacia_bonsai_command
-from LTLsynthesis.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
-from LTLsynthesis.rpni import build_PTA, rpni_mealy, pretty_print
-from LTLsynthesis.completeMealy import complete_mealy_machine
+from src.computeWinningRegionsUCB import acacia_bonsai_command
+from src.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
+from src.rpni import build_PTA, rpni_mealy, pretty_print
+from src.completeMealy import complete_mealy_machine
 import traceback, subprocess, spot, logging
 from flask import session
 

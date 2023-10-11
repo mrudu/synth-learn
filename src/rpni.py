@@ -1,5 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.utils import checkCFSafety, sort_nodes
+from src.utils import checkCFSafety, sort_nodes
 import copy
 
 # Merge step of red and blue state

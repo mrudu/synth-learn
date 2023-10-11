@@ -1,9 +1,9 @@
-from LTLsynthesis import app
+from src import app
 from flask import request
 from flask import render_template, send_file, jsonify, session
 from flask import Flask
-from LTLsynthesis.algorithm import build_mealy, build_strix
-from LTLsynthesis.utils import save_mealy_machile
+from src.algorithm import build_mealy, build_strix
+from src.utils import save_mealy_machile
 import random
 import json
 import os

@@ -1,8 +1,8 @@
 from aalpy.automata import MealyMachine, MealyState
-from LTLsynthesis.utils import checkCFSafety, bdd_to_str, compare_cfs
-from LTLsynthesis.ucbHelperFunctions import get_transition_counting_function, contains
+from src.utils import checkCFSafety, bdd_to_str, compare_cfs
+from src.ucbHelperFunctions import get_transition_counting_function, contains
 import spot, operator, functools
-from LTLsynthesis.rpni import pretty_print
+from src.rpni import pretty_print
 
 def complete_mealy_machine(mealy_machine: MealyMachine, ucb,
 	antichain_vectors):

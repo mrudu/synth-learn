@@ -1,6 +1,6 @@
 from aalpy.utils.FileHandler import save_automaton_to_file
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.ucbHelperFunctions import is_safe, contains, get_transition_counting_function
+from src.ucbHelperFunctions import is_safe, contains, get_transition_counting_function
 import spot
 import buddy
 from flask import session
