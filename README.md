@@ -2,7 +2,7 @@
 
 This is a modern implementation of learning algorithms in reactive synthesis using antichain data structures.
 This is based on the theory published here: [LTL Reactive Synthesis with a Few Hints](https://doi.org/10.1007/978-3-031-30820-8_20).
-For an online demo, click [here](ec2-54-159-1-97.compute-1.amazonaws.com).
+For an online demo, click [here](http://ec2-54-159-1-97.compute-1.amazonaws.com).
    
 # Dependencies
 
