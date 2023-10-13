@@ -5,35 +5,34 @@ import math
 from LTLsynthesis.utilities import contains
 import logging
 import traceback
+from LTLsynthesis import app
+from flask import session
 
 logger = logging.getLogger('misc-logger')
+config = app.config
 
 def build_strix(LTL_formula, I, O):
-	src_file = "/Users/mrudula/Downloads/strix"
-	command = "{} -f '{}' --ins=\"{}\" --outs=\"{}\" -m both".format(
+	src_file = config['STRIX_TOOL']
+	command = config['STRIX_COMMAND'].format(
 			src_file,
 			LTL_formula, 
 			",".join(I), 
-			",".join(O)) 
-	print(command)
+			",".join(O))
 	try:
 		op = subprocess.run(command, shell=True, capture_output=True)
 		automata_lines = []
-		ucb = None
-		
+		ucb = None		
 		for line in op.stdout.splitlines():
 			l = line.decode()
 			automata_lines.append(l)
-
 		for a in spot.automata('\n'.join(automata_lines[1:])):
 			ucb = a
-		with open("static/temp_model_files/StrixModel.svg", 'w') as f:
+		with open(app.root_path + config['MODEL_FILES_DIRECTORY'] + "StrixModel_{}.svg".format(session['number']), 'w') as f:
 			f.write(a.show().data)
-		return a.show().data
+		return {'realizable': automata_lines[0], 'automata': a.show().data}
 	except Exception as e:
 		traceback.print_exc()
-
-	return ""
+		return {'realizable': False, 'automata': 'Error'}
 
 def build_UCB(LTL_formula, I, O, k=2, limit=10):
 	global UCBWrapper
@@ -72,16 +71,15 @@ class UCB(object):
 			output_atomic_propositions)
 
 	def compute_winning(self, psi, inputs, outputs):
-		src_file = "/Users/mrudula/Personal/code/acacia-bonsai/build/src/acacia-bonsai"
+		src_file = config['ACACIA_BONSAI_TOOL']
 		antichain_lines = []
 		automata_lines = []
-		command = "{} -f '{}' -i '{}' -o '{}' --K={}".format(
+		command = config['ACACIA_BONSAI_COMMAND'].format(
 			src_file,
 			psi, 
 			",".join(inputs), 
 			",".join(outputs), 
 			self.k)
-		command = "multipass exec bar -- " + command
 		logger.debug(command)
 		try:
 			op = subprocess.run(command, shell=True, capture_output=True)

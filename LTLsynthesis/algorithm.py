@@ -7,6 +7,7 @@ from LTLsynthesis.mealyMachineBuilder import isCrossProductCompatible, generaliz
 from LTLsynthesis.completion_phase import complete_mealy_machine
 from LTLsynthesis.utilities import *
 from LTLsynthesis.UCBBuilder import UCB
+from LTLsynthesis import app
 
 import time
 
@@ -93,7 +94,7 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 	mealy_machine = generalization_algorithm(mealy_machine, sort_merge_cand_by_min_cf, UCBWrapper)
 	logger.info("Phase 1: Merge phase is complete")
 
-	save_mealy_machile(mealy_machine, "static/temp_model_files/PreMachine", ['pdf'])
+	save_mealy_machile(mealy_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "PreMachine", ['pdf'])
 	### STEP 2.5 ###
 	# Mark nodes in "pre-machine"
 	mark_nodes(mealy_machine)
@@ -118,10 +119,10 @@ def build_mealy(LTL_formula, I, O, traces, file_name, target, k = 2):
 				O, traces, 
 				file_name, target, k)
 	if target_machine is not None:
-		save_mealy_machile(target_machine, "static/temp_model_files/TargetModel", ['svg', 'pdf'])
-	save_mealy_machile(mealy_machine, "static/temp_model_files/LearnedModel", ['dot'])
+		save_mealy_machile(target_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "TargetModel", ['svg', 'pdf'])
+	save_mealy_machile(mealy_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "LearnedModel", ['dot'])
 	cleaner_display(mealy_machine, UCBWrapper.ucb)
-	save_mealy_machile(mealy_machine, "static/temp_model_files/LearnedModel", ['svg', 'pdf'])
+	save_mealy_machile(mealy_machine, app.root_path + app.config['MODEL_FILES_DIRECTORY'] + "LearnedModel", ['svg', 'pdf'])
 	traces = shorten_traces(traces)
 	print_data(target_machine, mealy_machine, num_premachine_nodes, traces, k, UCBWrapper)
 	return mealy_machine, {'traces': traces, 'num_premachine_nodes': num_premachine_nodes, 'k': k}

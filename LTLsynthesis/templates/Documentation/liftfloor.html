@@ -1,0 +1,83 @@
+{% extends 'example.html' %}
+{% block subtitle %}
+<div class="container-fluid">
+	<h5 class="display-6 fw-bold text-body-emphasis"> Elevator/Lift: <small class="text-body-secondary fw-normal">With 2 Floors</small></h5>
+	<div class="col-md-12 fs-4 mx-auto">
+		<p class="mb-4 lead">
+			{{ examples[exampleName].subtitle }}
+		</p>
+	</div>
+</div>
+{% endblock %}
+{% block example_content %}
+	<p class="introduction">
+		In this example, we consider an elevator system that traverses between two floors.
+		Each floor has a button that can be pressed to <i>call</i> the elevator to that floor.
+		The movement of the elevator is controlled by the arbiter that ensures "liveness" property, i.e., every floor button pressed implies elevator will eventually "reach" the floor and "serve" that floor.
+	</p>
+	<h4 class="text-dark">Representation of Environment/System interaction in atomic propoisitons</h4>
+	<p>
+		The environment here represents the user. The following are the atomic propositions of the environment:
+		<ol class="list-group list-group-numbered list-group-flush">
+			<li class="list-group-item d-flex justify-content-between align-items-start">
+				<div class="ms-2 me-auto">
+					<h6 class="fw-bold">Floor Button: <span class="fw-normal fs-5 font-monospace text-primary">b(i)</span></h6>
+					<p class="mb-1"> Button of Floor i pressed by user to request elevator service on Floor i</p>
+				</div>
+			</li>
+		</ol>
+		The system here is the elevator controllre and the atomic propositions of the outputs are as follows:
+		<ol class="list-group list-group-numbered list-group-flush">
+			<li class="list-group-item d-flex justify-content-between align-items-start">
+				<div class="ms-2 me-auto">
+					<h6 class="fw-bold">Floor Position: <span class="fw-normal fs-5 font-monospace text-primary">f(i)</span></h6>
+					<p class="mb-1"> Represents that elevator is on floor i.</p>
+				</div>
+			</li>
+			<li class="list-group-item d-flex justify-content-between align-items-start">
+				<div class="ms-2 me-auto">
+					<h6 class="fw-bold">Serve Floor: <span class="fw-normal fs-5 font-monospace text-primary">serve</span></h6>
+					<p class="mb-1"> Represents that elevator doors are open on floor i.</p>
+				</div>
+			</li>
+		</ol>
+	</p>
+	<h4 class="text-dark">Design Specifications/Requirements</h4>
+	<p>
+		To synthesize an efficient controller, we must express the precise design specifications. We can express these specifications formally in Linear Temporal Logic (LTL).
+		We classify the design specifications as <b>Safety/Sanity</b> and <b>Functionality/Fairness</b>.
+	</p>
+	<div class="row">
+		<div class="col-auto col-md-6">
+			<h5 class="text-dark">Safety/Sanity Specifications</h5>
+			<ol class="list-group list-group-numbered">
+				<li class="list-group-item d-flex justify-content-between align-items-start">
+					<div class="ms-2 me-auto">
+						<h6 class="fw-bold">Elevator Traversal Condition:</h6>
+						<p class="mb-1">We must ensure that the elevator does not change floors when the doors are open:</p>
+						<p class="fs-6 font-monospace text-success">G ((fi & serve) => X (f(i)))</p>
+					</div>
+				</li>
+				<li class="list-group-item d-flex justify-content-between align-items-start">
+					<div class="ms-2 me-auto">
+						<h6 class="fw-bold">Sanity Check:</h6>
+						<p class="mb-1">We must ensure the controller restricts the lift to be exactly at one floor:</p>
+						<p class="fs-6 font-monospace text-success">G ((f(0) & !f(1)) | (!f(0) & f(1)))</p>
+					</div>
+				</li>
+			</ol>
+		</div>
+		<div class="col-auto col-md-6">
+			<h5 class="text-dark">Functionality Specifications</h5>
+			<ol class="list-group list-group-numbered">
+				<li class="list-group-item d-flex justify-content-between align-items-start">
+					<div class="ms-2 me-auto">
+						<h6 class="fw-bold">Fairness:</h6>
+						<p class="mb-1">The controller must ensure fairness, i.e., every request (button press) made by the user must be eventually satisfied. We can express in LTL as:</p>
+						<p class="fs-6 font-monospace text-success">G (b(i) -> F (f(i) & serve))</p>
+					</div>
+				</li>
+			</ol>
+		</div>
+	</div>
+{% endblock example_content %}
