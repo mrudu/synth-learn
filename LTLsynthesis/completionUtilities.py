@@ -1,7 +1,7 @@
 import logging
 from LTLsynthesis.utilities import bdd_to_str, contains, initialize_counting_function, checkCFSafety, sort_counting_functions
 
-logger = logging.getLogger('completion-logger')
+logger = logging.getLogger('completion-phase-logger')
 
 def subsume_to_antichain_heads(mealy_machine, UCBWrapper):
 	for state in mealy_machine.states:
