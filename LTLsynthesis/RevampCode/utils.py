@@ -9,6 +9,24 @@ import functools, time, logging
 
 logger = logging.getLogger('miscLogger')
 
+def reinitialize_index(mealy_machine):
+	# Reindexing based on length of prefixes
+	root = mealy_machine.initial_state
+	count = 0
+	visited_states = []
+	state_queue = [root]
+	root.state_id = "e"
+	while len(state_queue) > 0:
+		curr = state_queue.pop(0)
+		visited_states.append(curr)
+		curr.index = count
+		count += 1
+		for i in curr.transitions.keys():
+			if curr.transitions[i] not in visited_states + state_queue:
+				state_queue.append(curr.transitions[i])
+				curr.transitions[i].state_id = curr.state_id + "#{}.{}".format(i, curr.output_fun[i])
+	mealy_machine.states = visited_states
+
 def save_mealy_machile(mealy_machine, file_name, file_type = ['dot']):
 	for type in file_type:
 		save_automaton_to_file(mealy_machine, file_type=type,

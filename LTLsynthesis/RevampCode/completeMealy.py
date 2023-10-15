@@ -1,19 +1,22 @@
 from aalpy.automata import MealyMachine, MealyState
 from LTLsynthesis.RevampCode.utils import checkCFSafety, bdd_to_str, compare_cfs
 from LTLsynthesis.RevampCode.ucbHelperFunctions import get_transition_counting_function, contains
-import spot, operator, functools
+import spot, operator, functools, logging
 from LTLsynthesis.RevampCode.rpni import pretty_print
 
+logger = logging.getLogger("completionPhaseLogger")
 def complete_mealy_machine(mealy_machine: MealyMachine, ucb,
 	antichain_vectors):
 	x = 0
 	safe, cfs = checkCFSafety(mealy_machine, ucb, antichain_vectors)
 	while x < len(mealy_machine.states):
 		state = mealy_machine.states[x]
+		logger.debug("Investigating state {}".format(state.index))
 		x += 1
 		for bdd_i in ucb.bdd_inputs:
 			i = bdd_to_str(bdd_i)
 			if state.transitions.get(i) is None:
+				logger.debug("Filling hole {}, {}".format(state.index, i))
 				ucb.bdd_outputs = rank_outputs(cfs[state.index], 
 					bdd_i, ucb)
 				edgeAdded, cfs = connect_to_state(state, i, mealy_machine, ucb, 
@@ -21,6 +24,7 @@ def complete_mealy_machine(mealy_machine: MealyMachine, ucb,
 				if not edgeAdded:
 					new_state = MealyState(state.state_id)
 					new_state.index = len(mealy_machine.states)
+					logger.debug("Unable to connect to existing. Adding state {}".format(new_state.index))
 					state.transitions[i] = new_state
 					mealy_machine.states.append(new_state)
 					for bdd_o in ucb.bdd_outputs:
@@ -46,6 +50,8 @@ def rank_outputs(state_vector, bdd_i, ucb):
 # We check for safety here and return True if successful
 def connect_to_state(state, i, mealy_machine, ucb, ac_vecs):
 	for target_state in mealy_machine.states:
+		# logger.debug("Testing connection between {}, {} and {}".format(
+		# 	state.index, i, target_state.index))
 		state.transitions[i] = target_state
 		for bdd_o in ucb.bdd_outputs:
 			state.output_fun[i] = bdd_to_str(bdd_o)

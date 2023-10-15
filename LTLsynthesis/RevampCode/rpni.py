@@ -1,5 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from LTLsynthesis.RevampCode.utils import checkCFSafety, sort_nodes
+from LTLsynthesis.RevampCode.utils import checkCFSafety, sort_nodes, reinitialize_index
 import copy, logging
 
 logger = logging.getLogger("mergePhaseLogger")
@@ -104,9 +104,8 @@ def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_stra
 			logger.debug("red: {}".format(red))
 			logger.debug("blue: {}".format(blue))
 
-	prune_machine(mealy_machine)
-	print("rpni done")
-	print(checkCFSafety(mealy_machine, ucb, antichain_vectors)[0])
+	reinitialize_index(mealy_machine)
+	logger.debug("Phase 1 done.")
 	pretty_print(mealy_machine)
 	return mealy_machine
 
@@ -122,11 +121,6 @@ def prune_machine(mealy_machine: MealyMachine):
 		state_visited_bool[state.index] = True
 		state_queue.extend(state.transitions.values())
 		reachable_states.append(state)
-
-	# Reinintialising indices
-	for i in range(len(reachable_states)):
-		reachable_states[i].index = i
-	mealy_machine.states = reachable_states
 
 # Pretty Print Mealy Machine
 def pretty_print(mealy_machine):
@@ -169,19 +163,5 @@ def build_PTA(examples):
 				list_states.append(new_state)
 				state = new_state
 	mealyTree = MealyMachine(root, list_states)
-
-	# Reindexing based on length of prefixes
-	curr = root
-	count = 0
-	visited_states = []
-	state_queue = [root]
-	while len(state_queue) > 0:
-		curr = state_queue.pop(0)
-		visited_states.append(curr)
-		curr.index = count
-		count += 1
-		for i in curr.transitions.keys():
-			if curr.transitions[i] not in visited_states:
-				state_queue.append(curr.transitions[i])
-	mealyTree.states = visited_states
+	reinitialize_index(mealyTree)
 	return mealyTree
