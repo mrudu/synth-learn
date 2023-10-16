@@ -5,37 +5,37 @@ import copy, logging
 logger = logging.getLogger("mergePhaseLogger")
 
 # Merge step of red and blue state
-def merge(mealy_machine: MealyMachine, q_red: MealyState, q_blue: MealyState):
-	logger.debug("Merge {}:{} and {}:{}".format(q_red.index, 
-		q_red.state_id, q_blue.index, q_blue.state_id))
+def merge(mealy_machine: MealyMachine, red: MealyState, blue: MealyState):
+	logger.debug("Merge {}:{} and {}:{}".format(red.index, 
+		red.state_id, blue.index, blue.state_id))
 	for state in mealy_machine.states:  # O(n)
 		for i in state.transitions.keys(): # O(|I|)
-			if state.transitions[i] == q_blue:
-				state.transitions[i] = q_red
+			if state.transitions[i] == blue:
+				state.transitions[i] = red
 				logger.debug("Adding transition: {} -{}/{}-> {}".format(
-					state.index, i, state.output_fun[i], q_red.index))
-	return fold(mealy_machine, q_red, q_blue)
+					state.index, i, state.output_fun[i], red.index))
+	return fold(mealy_machine, red, blue)
 
 # Folding red and blue states together (propogating merge)
-def fold(mealy_machine: MealyMachine, q_red: MealyState, q_blue: MealyState): # O(n*(d^2))
-	logger.debug("Fold {} and {}".format(q_red.index, q_blue.index))
-	for i in q_blue.transitions.keys(): # O(|I|)
-		if i in q_red.transitions.keys(): # O(|I|)
+def fold(mealy_machine: MealyMachine, red: MealyState, blue: MealyState): # O(n*(d^2))
+	logger.debug("Fold {} and {}".format(red.index, blue.index))
+	for i in blue.transitions.keys(): # O(|I|)
+		if i in red.transitions.keys(): # O(|I|)
 			# Note: Mealy Machine! Merge failed as input/output don't match! 
-			if q_blue.output_fun[i] != q_red.output_fun[i]:
+			if blue.output_fun[i] != red.output_fun[i]:
 				logger.debug("Output dont match: {} -{}/{}-> , {}-{}/{}->".format(
-					q_red.index, i, q_red.output_fun[i], 
-					q_blue.index, i, q_blue.output_fun[i]))
+					red.index, i, red.output_fun[i], 
+					blue.index, i, blue.output_fun[i]))
 				return False
-			if not fold(mealy_machine, q_red.transitions[i], 
-				q_blue.transitions[i]): # O(*)
+			if not fold(mealy_machine, red.transitions[i], 
+				blue.transitions[i]): # O(*)
 				return False
 		else:
 			logger.debug("Adding transition: {} -{}/{}-> {}".format(
-				q_red.index, i, q_blue.output_fun[i],
-				q_blue.transitions[i].index))
-			q_red.transitions[i] = q_blue.transitions[i]
-			q_red.output_fun[i] = q_blue.output_fun[i]
+				red.index, i, blue.output_fun[i],
+				blue.transitions[i].index))
+			red.transitions[i] = blue.transitions[i]
+			red.output_fun[i] = blue.output_fun[i]
 	return True
 
 def generalize(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_strategy):
