@@ -2,8 +2,7 @@ from app.synthlearn.computeWinningRegionsUCB import acacia_bonsai_command
 from app.synthlearn.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
 from app.synthlearn.rpni import build_PTA, rpni_mealy, pretty_print
 from app.synthlearn.completeMealy import complete_mealy_machine
-import traceback, subprocess, spot, logging
-from flask import session
+import logging
 
 logger = logging.getLogger("overallLogger")
 
@@ -71,26 +70,3 @@ def build_mealy(examples, formula, inputs, outputs, app, k, merging_strategy):
 	return mealy_machine, {'traces': examples,
 	'num_premachine_nodes': num_premachine_nodes, 'k': k, 
 	'realizable': True, 'message': ''}
-
-def build_strix(LTL_formula, I, O, app):
-	src_file = app.config['STRIX_TOOL']
-	command = app.config['STRIX_COMMAND'].format(src_file, LTL_formula, 
-			",".join(I), ",".join(O))
-	try:
-		op = subprocess.run(command, shell=True, capture_output=True)
-		automata_lines = []
-		ucb = None
-		
-		for line in op.stdout.splitlines():
-			l = line.decode()
-			automata_lines.append(l)
-
-		for a in spot.automata('\n'.join(automata_lines[1:])):
-			ucb = a
-		with open(app.root_path + app.config['MODEL_FILES_DIRECTORY'] + \
-			"StrixModel_{}.svg".format(session['number']), 'w') as f:
-			f.write(a.show().data)
-		return {'realizable': automata_lines[0], 'automata': a.show().data}
-	except Exception as e:
-		traceback.print_exc()
-		return {'realizable': False, 'automata': 'Error'}

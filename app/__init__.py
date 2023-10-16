@@ -12,6 +12,9 @@ def create_app(config_class=Config):
 
 	# Register blueprints here
 	from app.web import bp as web_bp
+	from app.strix import bp as strix_bp
+	
 	app.register_blueprint(web_bp)
+	app.register_blueprint(strix_bp)
 
 	return app

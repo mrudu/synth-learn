@@ -9,7 +9,7 @@ class Config:
 	DEBUG = True
 	TESTING = True
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	STRIX_TOOL = '/Users/mrudula/Downloads/strix'
+	STRIX_TOOL = '/Users/mrudu/Downloads/strix'
 	ACACIA_BONSAI_TOOL = '/home/ubuntu/acacia-bonsai/build/src/acacia-bonsai'
 	STRIX_COMMAND = '{} -f \'{}\' --ins=\"{}\" --outs=\"{}\" -m both'
 	ACACIA_BONSAI_COMMAND = 'multipass exec affecting-pademelon -- {} -f \'{}\' -i \'{}\' -o \'{}\' --K={}'
