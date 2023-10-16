@@ -1,5 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from src.utils import checkCFSafety, sort_nodes, reinitialize_index
+from app.synthlearn.utils import checkCFSafety, sort_nodes, reinitialize_index
 import copy, logging
 
 logger = logging.getLogger("mergePhaseLogger")

@@ -4,7 +4,7 @@ import datetime
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-	PERMANENT_SESSION_LIFETIME = timedelta(minutes=1)
+	PERMANENT_SESSION_LIFETIME = datetime.timedelta(minutes=1)
 	FLASK_ENV = os.environ.get('FLASK_ENV')
 	DEBUG = True
 	TESTING = True
@@ -13,4 +13,4 @@ class Config:
 	ACACIA_BONSAI_TOOL = '/home/ubuntu/acacia-bonsai/build/src/acacia-bonsai'
 	STRIX_COMMAND = '{} -f \'{}\' --ins=\"{}\" --outs=\"{}\" -m both'
 	ACACIA_BONSAI_COMMAND = 'multipass exec affecting-pademelon -- {} -f \'{}\' -i \'{}\' -o \'{}\' --K={}'
-	MODEL_FILES_DIRECTORY = '/temp_model_files/'
+	MODEL_FILES_DIRECTORY = '/static/temp_model_files/'

@@ -1,9 +1,9 @@
+let setData;
 $(document).ready(function() {
-	$('.alert').alert()
 	let count = 0;
 	let exampleReference = {};
 	let variable_set = {};
-	fetch('/static/js/examples.json')
+	fetch('/static/data/examples.json')
     .then((response) => response.json())
     .then((json) => exampleReference = json);
 
@@ -39,6 +39,7 @@ $(document).ready(function() {
 		data.set('inputs', inputs);
 		data.set('outputs', outputs);
 		data.set('k', k);
+		data.set('strategy', data.get('radioStrategy'));
 
 		let traces = tracesEditor.getValue().trim();
 		if(traces.length > 0)
@@ -87,7 +88,7 @@ $(document).ready(function() {
 			/\.|,|:|;|\#/).map(t => t in variable_set? variable_set[t]:
 			t).join(".")).filter(s => s.length > 0).join('\n');
 
-	let setData =  function (exampleName) {
+	setData =  function (exampleName) {
 		assumptionsEditor.setValue(exampleReference[exampleName][
 			'assumptions'].join('\n'));
 		guaranteesEditor.setValue(exampleReference[exampleName][
@@ -131,7 +132,7 @@ $(document).ready(function() {
 	
 	$('#submit').click(function(){
 		
-		let data = new FormData($('#acacia-form')[0]);
+		let data = new FormData($('#dataform')[0]);
 		data = formatFormData(data);
 		if (data == null) return;
 		let showTarget = beforeQuery(data);
@@ -147,7 +148,7 @@ $(document).ready(function() {
 			success: function(success) {
 				afterQuery(showTarget);
 				document.getElementById('img').src = 
-					"/static/temp_model_files/LearnedModel_"+ success.query_number + 
+					"/static/temp_model_files/Model_"+ success.query_number + 
 					".svg?count=" + count;
 				if (success.realizable) {
 					$('#realizability').html("REALIZABLE");
@@ -171,7 +172,7 @@ $(document).ready(function() {
 
 	$('#submitstrix').click(function(){
 		
-		let data = new FormData($('#strix-form')[0]);
+		let data = new FormData($('#dataform')[0]);
 		data = formatFormData(data);
 		if (data == null) return;
 		showTarget = beforeQuery(data);

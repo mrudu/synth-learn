@@ -15,7 +15,7 @@
 							<div class="card-body">
 								<h5 class="card-title">{{ examples[example].title }}</h5>
 								<p class="card-text">{{ examples[example].subtitle }}</p>
-								<a href="#" class="btn btn-primary" id="{{ examples[example].id }}" data-bs-dismiss="modal">Try!</a>
+								<a href="#" class="btn btn-primary" onclick='setData("{{ example }}")' data-bs-dismiss="modal">Try!</a>
 								<a href="{{ examples[example].url }}" class="btn btn-secondary">Learn More...</a>
 							</div>
 						</div>

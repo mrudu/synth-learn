@@ -1,8 +1,8 @@
 from aalpy.automata import MealyMachine, MealyState
-from src.utils import checkCFSafety, bdd_to_str, compare_cfs
-from src.ucbHelperFunctions import get_transition_counting_function, contains
+from app.synthlearn.utils import checkCFSafety, bdd_to_str, compare_cfs
+from app.synthlearn.ucbHelperFunctions import get_transition_counting_function, contains
 import spot, operator, functools, logging
-from src.rpni import pretty_print
+from app.synthlearn.rpni import pretty_print
 
 logger = logging.getLogger("completionPhaseLogger")
 def complete_mealy_machine(mealy_machine: MealyMachine, ucb,

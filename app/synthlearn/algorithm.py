@@ -1,7 +1,7 @@
-from src.computeWinningRegionsUCB import acacia_bonsai_command
-from src.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
-from src.rpni import build_PTA, rpni_mealy, pretty_print
-from src.completeMealy import complete_mealy_machine
+from app.synthlearn.computeWinningRegionsUCB import acacia_bonsai_command
+from app.synthlearn.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
+from app.synthlearn.rpni import build_PTA, rpni_mealy, pretty_print
+from app.synthlearn.completeMealy import complete_mealy_machine
 import traceback, subprocess, spot, logging
 from flask import session
 

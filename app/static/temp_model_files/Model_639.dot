@@ -1,0 +1,17 @@
+digraph Model_639 {
+0 [label="0"];
+1 [label="1"];
+2 [label="2"];
+3 [label="3"];
+0 -> 0  [label="!p & !q/!gp & !gq"];
+0 -> 1  [label="!p & q/!gp & !gq"];
+0 -> 3  [label="p & q/!gp & !gq"];
+0 -> 2  [label="p & !q/!gp & !gq"];
+1 -> 0  [label="!p/!gp & gq"];
+1 -> 3  [label="p/!gp & gq"];
+2 -> 3  [label="q/gp & !gq"];
+2 -> 0  [label="!q/gp & !gq"];
+3 -> 1  [label="1/gp & !gq"];
+__start0 [label="", shape=none];
+__start0 -> 0  [label=""];
+}
