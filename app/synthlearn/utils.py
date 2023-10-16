@@ -7,23 +7,59 @@ import functools, time, logging
 
 logger = logging.getLogger('miscLogger')
 
+# Pretty Print Mealy Machine
+def pretty_print(mealy_machine):
+	state_queue = [mealy_machine.initial_state]
+	j = 0
+	while j < len(mealy_machine.states):
+		state = mealy_machine.states[j]
+		j += 1
+		logger.debug("{}:{}".format(state.index, state.state_id))
+		for i in state.transitions.keys():
+			logger.debug("{} -({}/{})-> {}".format(state.index, i, 
+				state.output_fun[i], state.transitions[i].index))
+
+def get_prefix_states(mealy_machine: MealyMachine):
+	prefix_state = dict()
+	root = mealy_machine.initial_state
+
+	state_queue = [(root, "e")]
+
+	visited_states = [False]*len(mealy_machine.states)
+	visited_states[root.index] = True
+
+	while len(state_queue) > 0:
+		curr_state, prefix = state_queue.pop(0)
+		prefix_state[prefix] = curr_state.index
+
+		for i, next_state in curr_state.transitions.items():
+			if not visited_states[next_state.index]:
+				state_queue.append((next_state, "{}#{}/{}".format(
+					prefix, i, curr_state.output_fun[i])))
+				visited_states[next_state.index] = True
+	return prefix_state
+
 def reinitialize_index(mealy_machine):
 	# Reindexing based on length of prefixes
-	root = mealy_machine.initial_state
+	states = []
 	count = 0
-	visited_states = []
+	root = mealy_machine.initial_state
+
 	state_queue = [root]
-	root.state_id = "e"
+
+	visited_states = [False]*len(mealy_machine.states)
+	visited_states[root.index] = True
+
 	while len(state_queue) > 0:
-		curr = state_queue.pop(0)
-		visited_states.append(curr)
-		curr.index = count
-		count += 1
-		for i in curr.transitions.keys():
-			if curr.transitions[i] not in visited_states + state_queue:
-				state_queue.append(curr.transitions[i])
-				curr.transitions[i].state_id = curr.state_id + "#{}.{}".format(i, curr.output_fun[i])
-	mealy_machine.states = visited_states
+		curr_state = state_queue.pop(0)
+		curr_state.index = len(states)
+		states.append(curr_state)
+
+		for i, next_state in curr_state.transitions.items():
+			if not visited_states[next_state.index]:
+				state_queue.append(next_state)
+				visited_states[next_state.index] = True
+	mealy_machine.states = states
 
 def expand_symbolic_trace(trace, ucb):
 	bdd_inputs = ucb.bdd_inputs

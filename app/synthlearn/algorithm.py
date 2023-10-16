@@ -1,6 +1,6 @@
 from app.synthlearn.computeWinningRegionsUCB import acacia_bonsai_command
 from app.synthlearn.utils import checkCFSafety, expand_symbolic_trace, mergeEdges, cfThenPrefix, prefixThenCF
-from app.synthlearn.rpni import build_PTA, rpni_mealy, pretty_print
+from app.synthlearn.rpni import build_PTA, generalize, pretty_print
 from app.synthlearn.completeMealy import complete_mealy_machine
 import logging
 
@@ -58,7 +58,7 @@ def build_mealy(examples, formula, inputs, outputs, app, k, merging_strategy):
 		strategy = cfThenPrefix
 	else:
 		strategy = prefixThenCF
-	mealy_machine = rpni_mealy(mealy_machine, ucb, antichain_vectors, strategy)
+	mealy_machine = generalize(mealy_machine, ucb, antichain_vectors, strategy)
 	num_premachine_nodes = len(mealy_machine.states)
 	# Completing Mealy Machine
 	complete_mealy_machine(mealy_machine, ucb, antichain_vectors)

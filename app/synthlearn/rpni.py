@@ -1,5 +1,5 @@
 from aalpy.automata import MealyState, MealyMachine
-from app.synthlearn.utils import checkCFSafety, sort_nodes, reinitialize_index
+from app.synthlearn.utils import checkCFSafety, sort_nodes, reinitialize_index, pretty_print, get_prefix_states
 import copy, logging
 
 logger = logging.getLogger("mergePhaseLogger")
@@ -38,101 +38,44 @@ def fold(mealy_machine: MealyMachine, q_red: MealyState, q_blue: MealyState): # 
 			q_red.output_fun[i] = q_blue.output_fun[i]
 	return True
 
-# rpni
-'''Note, here, we store indices of states in red and blue sets to account for
-deep copy of mealy machine in case of failed merges.'''
-def rpni_mealy(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_strategy):
-	red = [mealy_machine.initial_state.index] # O(1)
-	blue = set([s.index for s in mealy_machine.initial_state.transitions.values()]) # O(n)
-	logger.debug("red: {}".format(red))
-	logger.debug("blue: {}".format(blue))
-	while len(blue) > 0: # O(n^4)
-		# Storing copy of old machine in case of failed merges
-		old_mealy_machine = copy.deepcopy(mealy_machine) # O(n^2)?
-		logger.debug("________________CURR STATE________________")
-		pretty_print(old_mealy_machine)
-		logger.debug("________________MEALY MACH________________")
-		q_blue = min(blue) # O(n)
-		blue.remove(q_blue) # O(1)
-		canBeMerged = False # O(1)
-		safety, cfs = checkCFSafety(mealy_machine, ucb, antichain_vectors) 
-		red = sort_nodes(mealy_machine, red, cfs, merging_strategy)
-		# Finding a red state to merge blue state
-		for q_red in red: # O(n^3)
-			# Checking if red state is a prefix of blue state
-			# Required for completeness
-			if len(mealy_machine.states[q_red].state_id) > len(
-				mealy_machine.states[q_blue].state_id):
-				continue
-			mergeStatus = merge(mealy_machine, mealy_machine.states[q_red], 
-				mealy_machine.states[q_blue])
+def generalize(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_strategy):
+	prefix_state = get_prefix_states(mealy_machine)
+	prefixes = list(prefix_state.keys())
+	logger.debug("Presorted prefixes: {}".format(prefixes))
+	prefixes.sort()
+	logger.debug("Postsorted prefixes: {}".format(prefixes))
+
+	for i in range(1, len(prefixes)):
+		e = prefixes[i]
+		e_state = prefix_state[e]
+		logger.debug("Merging prefix: {} ({})".format(e, e_state))
+		merge_candidates = list(set([prefix_state[p] for p in prefixes[:i]]))
+		logger.debug("Presorted candidates: {}".format(merge_candidates))
+		safety, count_funcs = checkCFSafety(mealy_machine, ucb, antichain_vectors)
+		merge_candidates = sort_nodes(mealy_machine, merge_candidates, 
+			count_funcs, merging_strategy)
+		logger.debug("Post-sorted candidates: {}".format(merge_candidates))
+
+		old_mealy_machine = copy.deepcopy(mealy_machine)
+		pretty_print(mealy_machine)
+		for cand in merge_candidates:
+			logger.debug("Attempt merge: {} and {}".format(e_state, cand))
+			mergeStatus = merge(mealy_machine, mealy_machine.states[cand], 
+				mealy_machine.states[e_state])
 			safetyStatus = checkCFSafety(mealy_machine, ucb, 
 				antichain_vectors)[0]
-			logger.debug("Status of Merge: {}".format(mergeStatus))
-			logger.debug("Status of Safety: {}".format(safetyStatus))
-			# Testing if merge with q_red state is sucessful
-			if (mergeStatus and safetyStatus): # O(n)
-				logger.debug("Merge successful. Add new {} state neighbours to blue (resulting from merge)".format(q_red))
-				canBeMerged = True # O(1)
-				# Merge successful. Add new red state neighbours to
-				# blue (resulting from merge)
-				for qr in red: # O(n^2)
-					for q in mealy_machine.states[qr].transitions.values(): # O(d)
-						if q.index not in red: # O(n)
-							blue.add(q.index)
 
-				# pretty_print(mealy_machine)
-				logger.debug("red: {}".format(red))
-				logger.debug("blue: {}".format(blue))
+			if (mergeStatus and safetyStatus):
+				logger.debug("Successful merge")
+				prefix_state[e] = cand
 				break
-			# Handling failed merges and restoring unmerged state
 			else:
-				logger.debug("Failed merge: reverting")
 				mealy_machine = copy.deepcopy(old_mealy_machine)
-				# pretty_print(mealy_machine)
-				logger.debug("red: {}".format(red))
-				logger.debug("blue: {}".format(blue))
-		
-		# If cant be merged with any red, make blue as red
-		if not canBeMerged:
-			if q_blue not in red:
-				red.append(q_blue)
-				blue.update([q.index for q in mealy_machine.states[q_blue
-					].transitions.values() if q.index not in red])
-			logger.debug("Merge of {} not possible. Making red".format(q_blue))
-			# pretty_print(mealy_machine)
-			logger.debug("red: {}".format(red))
-			logger.debug("blue: {}".format(blue))
 
 	reinitialize_index(mealy_machine)
 	logger.debug("Phase 1 done.")
 	pretty_print(mealy_machine)
 	return mealy_machine
-
-# Prune Unreachable Nodes
-def prune_machine(mealy_machine: MealyMachine):
-	state_queue = [mealy_machine.initial_state]
-	state_visited_bool = [False]*len(mealy_machine.states)
-	reachable_states = []
-	while len(state_queue) > 0:
-		state = state_queue.pop(0)
-		if state_visited_bool[state.index]:
-			continue
-		state_visited_bool[state.index] = True
-		state_queue.extend(state.transitions.values())
-		reachable_states.append(state)
-
-# Pretty Print Mealy Machine
-def pretty_print(mealy_machine):
-	state_queue = [mealy_machine.initial_state]
-	j = 0
-	while j < len(mealy_machine.states):
-		state = mealy_machine.states[j]
-		j += 1
-		logger.debug("{}:{}".format(state.index, state.state_id))
-		for i in state.transitions.keys():
-			logger.debug("{} -({}/{})-> {}".format(state.index, i, 
-				state.output_fun[i], state.transitions[i].index))
 
 # Building the prefix tree automata
 def build_PTA(examples):

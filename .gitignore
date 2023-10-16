@@ -93,4 +93,4 @@ ENV/
 .ropeproject
 
 # Custom Project Files
-LTLsynthesis/static/temp_model_files
+app/static/temp_model_files
