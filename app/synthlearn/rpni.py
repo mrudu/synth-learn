@@ -8,17 +8,20 @@ logger = logging.getLogger("mergePhaseLogger")
 def merge(mealy_machine: MealyMachine, red: MealyState, blue: MealyState):
 	logger.debug("Merge {}:{} and {}:{}".format(red.index, 
 		red.state_id, blue.index, blue.state_id))
+	if red == blue:
+		return True, []
 	for state in mealy_machine.states:  # O(n)
 		for i in state.transitions.keys(): # O(|I|)
 			if state.transitions[i] == blue:
 				state.transitions[i] = red
 				logger.debug("Adding transition: {} -{}/{}-> {}".format(
 					state.index, i, state.output_fun[i], red.index))
-	return fold(mealy_machine, red, blue)
+	return fold(mealy_machine, red, blue, [])
 
 # Folding red and blue states together (propogating merge)
-def fold(mealy_machine: MealyMachine, red: MealyState, blue: MealyState): # O(n*(d^2))
+def fold(mealy_machine: MealyMachine, red: MealyState, blue: MealyState, folds): # O(n*(d^2))
 	logger.debug("Fold {} and {}".format(red.index, blue.index))
+	folds.append((red.index, blue.index))
 	for i in blue.transitions.keys(): # O(|I|)
 		if i in red.transitions.keys(): # O(|I|)
 			# Note: Mealy Machine! Merge failed as input/output don't match! 
@@ -26,30 +29,33 @@ def fold(mealy_machine: MealyMachine, red: MealyState, blue: MealyState): # O(n*
 				logger.debug("Output dont match: {} -{}/{}-> , {}-{}/{}->".format(
 					red.index, i, red.output_fun[i], 
 					blue.index, i, blue.output_fun[i]))
-				return False
+				return False, []
 			if not fold(mealy_machine, red.transitions[i], 
-				blue.transitions[i]): # O(*)
-				return False
+				blue.transitions[i], folds)[0]: # O(*)
+				return False, []
 		else:
 			logger.debug("Adding transition: {} -{}/{}-> {}".format(
 				red.index, i, blue.output_fun[i],
 				blue.transitions[i].index))
 			red.transitions[i] = blue.transitions[i]
 			red.output_fun[i] = blue.output_fun[i]
-	return True
+	return True, folds
 
 def generalize(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_strategy):
 	prefix_state = get_prefix_states(mealy_machine)
 	prefixes = list(prefix_state.keys())
 	logger.debug("Presorted prefixes: {}".format(prefixes))
-	prefixes.sort()
+	prefixes.sort(key = lambda x: len(x.split("#")))
 	logger.debug("Postsorted prefixes: {}".format(prefixes))
 
 	for i in range(1, len(prefixes)):
 		e = prefixes[i]
 		e_state = prefix_state[e]
+		logger.debug("Prefix:State pairs: {}".format(prefix_state))
 		logger.debug("Merging prefix: {} ({})".format(e, e_state))
 		merge_candidates = list(set([prefix_state[p] for p in prefixes[:i]]))
+		if e_state in merge_candidates:
+			continue
 		logger.debug("Presorted candidates: {}".format(merge_candidates))
 		safety, count_funcs = checkCFSafety(mealy_machine, ucb, antichain_vectors)
 		merge_candidates = sort_nodes(mealy_machine, merge_candidates, 
@@ -60,7 +66,7 @@ def generalize(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_stra
 		pretty_print(mealy_machine)
 		for cand in merge_candidates:
 			logger.debug("Attempt merge: {} and {}".format(e_state, cand))
-			mergeStatus = merge(mealy_machine, mealy_machine.states[cand], 
+			mergeStatus, folds = merge(mealy_machine, mealy_machine.states[cand], 
 				mealy_machine.states[e_state])
 			safetyStatus = checkCFSafety(mealy_machine, ucb, 
 				antichain_vectors)[0]
@@ -68,6 +74,10 @@ def generalize(mealy_machine: MealyMachine, ucb, antichain_vectors, merging_stra
 			if (mergeStatus and safetyStatus):
 				logger.debug("Successful merge")
 				prefix_state[e] = cand
+				for red, blue in folds:
+					make_red = [e for e, s in prefix_state.items() if s == blue]
+					for e in make_red:
+						prefix_state[e] = red
 				break
 			else:
 				mealy_machine = copy.deepcopy(old_mealy_machine)

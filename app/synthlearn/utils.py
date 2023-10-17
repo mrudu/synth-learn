@@ -2,7 +2,6 @@ from aalpy.automata import MealyState, MealyMachine
 from app.synthlearn.ucbHelperFunctions import is_safe, contains, get_transition_counting_function
 import spot
 import buddy
-from flask import session
 import functools, time, logging
 
 logger = logging.getLogger('miscLogger')
@@ -14,9 +13,9 @@ def pretty_print(mealy_machine):
 	while j < len(mealy_machine.states):
 		state = mealy_machine.states[j]
 		j += 1
-		logger.debug("{}:{}".format(state.index, state.state_id))
+		logger.info("{}:{}".format(state.index, state.state_id))
 		for i in state.transitions.keys():
-			logger.debug("{} -({}/{})-> {}".format(state.index, i, 
+			logger.info("{} -({}/{})-> {}".format(state.index, i, 
 				state.output_fun[i], state.transitions[i].index))
 
 def get_prefix_states(mealy_machine: MealyMachine):
@@ -42,7 +41,6 @@ def get_prefix_states(mealy_machine: MealyMachine):
 def reinitialize_index(mealy_machine):
 	# Reindexing based on length of prefixes
 	states = []
-	count = 0
 	root = mealy_machine.initial_state
 
 	state_queue = [root]
@@ -52,13 +50,14 @@ def reinitialize_index(mealy_machine):
 
 	while len(state_queue) > 0:
 		curr_state = state_queue.pop(0)
-		curr_state.index = len(states)
 		states.append(curr_state)
 
 		for i, next_state in curr_state.transitions.items():
 			if not visited_states[next_state.index]:
 				state_queue.append(next_state)
 				visited_states[next_state.index] = True
+	for i in range(len(states)):
+		states[i].index = i
 	mealy_machine.states = states
 
 def expand_symbolic_trace(trace, ucb):
