@@ -33,9 +33,9 @@ def parse_command(op_lines):
 			ucb = a
 	return [ucb, antichain_vectors]
 
-def acacia_bonsai_command(formula, inputs, outputs, k, app):
-	command = app.config['ACACIA_BONSAI_COMMAND'].format(
-		app.config['ACACIA_BONSAI_TOOL'], formula, ",".join(inputs),
+def acacia_bonsai_command(formula, inputs, outputs, k, config):
+	command = config['ACACIA_BONSAI_COMMAND'].format(
+		config['ACACIA_BONSAI_TOOL'], formula, ",".join(inputs),
 		",".join(outputs), k)
 	ucb = None
 	antichain_vectors = []

@@ -14,7 +14,7 @@ def index():
 			request.form)
 
 		m, stats = build_mealy(traces, formula, inputs, outputs,
-		    current_app, k, strategy)
+		    current_app.config, k, strategy)
 		if m is None:
 		    return stats, 400
 

@@ -6,17 +6,17 @@ import logging
 
 logger = logging.getLogger("overallLogger")
 
-def build_mealy(examples, formula, inputs, outputs, app, k, merging_strategy):
+def build_mealy(examples, formula, inputs, outputs, config, k, merging_strategy):
 	# arbitrarily setting k_max as a function of k
 	k_max = int(k*1.5) if k > 7 else 10
 
 	# computing ucb and winning region using acacia
 	ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
-		outputs, k, app)
+		outputs, k, config)
 	while ucb is None and k < k_max:
 		k += 1
 		ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
-		outputs, k, app)
+		outputs, k, config)
 		logger.debug("UCB is unrealizable. Increasing k")
 
 	# LTL Formula not safe with UCB<k_max
@@ -43,7 +43,7 @@ def build_mealy(examples, formula, inputs, outputs, app, k, merging_strategy):
 	while not safe and k < k_max:
 		k += 1
 		ucb, antichain_vectors = acacia_bonsai_command(formula, inputs,
-		outputs, k, app)
+		outputs, k, config)
 		safe, cfs = checkCFSafety(mealy_machine, ucb, 
 			antichain_vectors, cfs)
 
