@@ -21,9 +21,12 @@
 		"guarantees": ["G (p -> F (gp))", "G (q -> F (gq))", "G (!gp | !gq)"],
 		"inputs": "p, q",
 		"outputs": "gp, gq",
-		"traces": ["true.!gp & !gq",
-			"p & !q.!gp & !gq.true.gp & !gq",
-			"!p & q.!gp & !gq.true.!gp & gq"]
+		"traces": [
+			"true.!gp & !gq",
+			"p & !q.!gp & !gq.!q.gp & !gq.true.!gp & !gq",
+			"!p & q.!gp & !gq.!p.!gp & gq.true.!gp & !gq",
+			"p & q.!gp & !gq.!q.gp & !gq.!p.!gp & gq.true.!gp & !gq"
+		]
 	},
 	"twoarbiteralternatinggrants": {
 		"title": "Arbiter with Two Processes And Alternating Grants",
