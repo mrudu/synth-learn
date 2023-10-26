@@ -1,0 +1,7 @@
+{
+	"formula": "G (p -> F (gp)) & G (q -> F (gq)) & G (!gp | !gq)",
+	"inputs": "p, q",
+	"outputs": "gp, gq",
+	"traces": "!p & !q.!gp & !gq, !p & q.!gp & gq.p & q.gp & !gq, p & !q.gp & !gq.p & q.!gp & gq, !p & q.!gp & gq.!p & q.!gp & gq.p & q.gp & !gq, p & !q.gp & !gq.p & !q.gp & !gq.p & q.!gp & gq, !p & q.!gp & gq.!p & !q.!gp & !gq.p & q.gp & !gq, p & !q.gp & !gq.!p & !q.!gp & !gq.p & q.!gp & gq",
+	"destination": "Figure3-Right"
+}
