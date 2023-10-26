@@ -9,7 +9,7 @@ fileConfig('app/logging_conf.ini')
 config = configparser.ConfigParser()
 config.read('config.ini')
  
-parser = argparse.ArgumentParser(description="Just an example",
+parser = argparse.ArgumentParser(description="SynthLearn:User-Guided LTL Synthesis",
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-i", "--inputs", help="Enter comma-separated \
 	input propositions. For example: p,q")
@@ -35,11 +35,11 @@ traces = args['traces']
 file_name = args['destination']
 
 while ((inputs is None) or (len(inputs) == 0)):
-	inputs = input("No input propositions entered. \
-		Enter comma-separated input propositions: ")
+	inputs = input("No input propositions entered."
+		" Enter comma-separated input propositions: ")
 while ((outputs is None) or (len(outputs) == 0)):
-	outputs = input("No output propositions entered. \
-		Enter comma-separated output propositions: ")
+	outputs = input("No output propositions entered."
+		" Enter comma-separated output propositions: ")
 while ((formula is None) or (len(formula) == 0)):
 	formula = input("No LTL formula entered. Enter LTL formula: ")
 
@@ -47,7 +47,7 @@ inputs = list(map(str.strip, inputs.split(',')))
 outputs = list(map(str.strip, outputs.split(',')))
 if traces is not None:
 	traces = list(map(str.strip, traces.split(',')))
-	traces = list(map(lambda x: x.replace('\r', '').split('.'), traces))
+	traces = list(map(lambda x: x.replace('\r', '').replace('#', '.').split('.'), traces))
 else:
 	traces = []
 

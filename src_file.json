@@ -3,5 +3,5 @@
 	"inputs": "p, q",
 	"outputs": "gp, gq",
 	"traces": "p & q.gp & !gq",
-	"destination": "Learny"
+	"destination": "Test"
 }
