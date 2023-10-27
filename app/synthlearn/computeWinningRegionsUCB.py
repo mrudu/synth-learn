@@ -49,8 +49,8 @@ def acacia_bonsai_command(formula, inputs, outputs, k, config):
 			if len(antichain_vectors) == 0:
 				antichain_vectors.append([k+1]*ucb.num_states())
 	except Exception as e:
-		logger.debug("Acacia Bonsai command has failed")
-		logger.debug("Command: " + command)
-		logger.debug(e)
+		logger.error("Acacia Bonsai command has failed")
+		logger.error("Command: " + command)
+		logger.error(e)
 		traceback.print_exc()
 	return [ucb, antichain_vectors]
