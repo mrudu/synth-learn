@@ -1,13 +1,14 @@
 from app.synthlearn.algorithm import build_mealy
 import json, random
 from app.utils import save_mealy_machile
-import configparser
-from logging.config import fileConfig
 import argparse
 
-fileConfig('app/logging_conf.ini')
-config = configparser.ConfigParser()
-config.read('config.ini')
+config = {
+	"STRIX_TOOL": "/Users/mrudu/Downloads/strix",
+	"ACACIA_BONSAI_TOOL": "acacia-bonsai",
+	"STRIX_COMMAND": '{} -f "{}" --ins="{}" --outs="{}" -m both',
+	"ACACIA_BONSAI_COMMAND": "{} -f '{}' -i '{}' -o '{}' --K={}",
+}
  
 parser = argparse.ArgumentParser(description="Just an example",
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -31,30 +32,28 @@ if args['source'] is not None:
 try:
 	inputs = args['inputs']
 except:
-	while ((inputs is None) or (len(inputs) == 0)):
-		inputs = input("No input propositions entered. \
-			Enter comma-separated input propositions: ")
+	inputs = ""
+
 try:
 	outputs = args['outputs']
 except:
-	while ((outputs is None) or (len(outputs) == 0)):
-		outputs = input("No output propositions entered. \
-			Enter comma-separated output propositions: ")
+	outputs = ""
 
 try:
 	formula = args['formula']
 except:
-	while ((formula is None) or (len(formula) == 0)):
-		formula = input("No LTL formula entered. Enter LTL formula: ")
+	formula = ""
+
 try:
 	traces = args['traces']
-	traces = list(map(str.strip, traces.split(',')))
-	traces = list(map(lambda x: x.replace('\r', '').replace('#', '.').split('.'), traces))
-	print(traces)
+	if len(traces) > 0:
+		traces = list(map(str.strip, traces.split(',')))
+		traces = list(map(lambda x: x.replace('\r',
+			'').replace('#', '.').split('.'), traces))
 except:
 	traces = []
 try:
-	k = args['kvalue']
+	k = args['k']
 except:
 	k = 6
 try:
@@ -62,11 +61,23 @@ try:
 except:
 	file_name = 'LearnedModel'
 
+
+while ((inputs is None) or (len(inputs) == 0)):
+	inputs = input("No input propositions entered."
+		"Enter comma-separated input propositions: ")
+
+while ((outputs is None) or (len(outputs) == 0)):
+	outputs = input("No output propositions entered."
+		"Enter comma-separated output propositions: ")
+
+while ((formula is None) or (len(formula) == 0)):
+	formula = input("No LTL formula entered. Enter LTL formula: ")
+
 inputs = list(map(str.strip, inputs.split(',')))
 outputs = list(map(str.strip, outputs.split(',')))
 
 m, stats = build_mealy(traces, formula, inputs, outputs,
-	config['DEFAULT'], k, 'prefix')
+	config, k, 'prefix')
 if m is None:
 	print("Unable to generate model.")
 	print(stats['message'])

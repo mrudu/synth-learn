@@ -38,7 +38,6 @@ def build_mealy(examples, formula, inputs, outputs, config, k, merging_strategy)
 	cfs = None
 	safe, cfs = checkCFSafety(mealy_machine, ucb, 
 		antichain_vectors, cfs)
-	print(antichain_vectors)
 
 	while not safe and k < k_max:
 		k += 1

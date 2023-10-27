@@ -1,0 +1,8 @@
+{
+	"formula": "G (r1 -> F (g1)) & G (r2 -> F (g2)) & G (!g1 | !g2)",
+	"inputs": "r1, r2",
+	"outputs": "g1, g2",
+	"k": 2,
+	"traces": "!r1 & !r2.!g1 & !g2,!r1 & r2.!g1 & g2#r1 & r2.g1 & !g2,!r1 & r2.!g1 & g2#!r1 & r2.!g1 & g2#r1 & r2.g1 & !g2,!r1 & r2.!g1 & g2#!r1 & !r2.!g1 & !g2#r1 & r2.g1 & !g2,r1 & !r2.g1 & !g2#r1 & r2.!g1 & g2,r1 & !r2.g1 & !g2#r1 & !r2.g1 & !g2#r1 & r2.!g1 & g2,r1 & !r2.g1 & !g2#!r1 & !r2.!g1 & !g2#r1 & r2.!g1 & g2",
+	"destination": "Figure3-Right"
+}

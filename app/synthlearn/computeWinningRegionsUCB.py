@@ -4,7 +4,7 @@ import traceback
 from app.synthlearn.ucbHelperFunctions import create_bdd_list
 import logging
 
-logger = logging.getLogger('UCBLogger')
+logger = logging.getLogger("UCBLogger")
 
 def parse_command(op_lines):
 	antichain_vectors = []
